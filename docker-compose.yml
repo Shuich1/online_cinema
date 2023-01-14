@@ -1,0 +1,71 @@
+version: '3.9'
+services:
+
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_DB=${DB_NAME}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./db_init.sql:/docker-entrypoint-initdb.d/db_init.sql
+      - database:/var/lib/postgresql/data
+
+  django:
+    container_name: django
+    build: ./app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - static_volume:/staticfiles
+
+  nginx:
+    container_name: nginx
+    image: nginx:1.19.2
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/config:/etc/nginx/conf.d:ro
+      - static_volume:/staticfiles
+    depends_on:
+      - django
+    ports:
+      - "80:80"
+
+  elastic:
+    container_name: elastic
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.8.0-arm64
+    environment:
+      - discovery.type=single-node
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl --silent ${ES_URL}  >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  etl:
+    container_name: etl
+    build: ./postgres_to_es
+    depends_on:
+      postgres:
+        condition: service_healthy
+      elastic:
+        condition: service_healthy
+    command:
+      - /bin/sh
+      - '-c'
+      - '/opt/etl/run_etl.sh'
+
+volumes:
+  database:
+  static_volume:
+  elasticsearch-data:
+    driver: local
