@@ -10,7 +10,7 @@ from psycopg2.extras import DictCursor
 from psycopg2 import OperationalError
 from extract import DataExtractor
 from transform import transformer
-from load import loader
+from load import loader, movies_index
 
 
 load_dotenv()
@@ -18,11 +18,11 @@ load_dotenv()
 
 @backoff.on_exception(backoff.expo, OperationalError, max_time=60)
 def postgres_conn():
-    pg_dsl = {'dbname': os.environ.get('DB_NAME'),
-              'user': os.environ.get('DB_USER'),
-              'password': os.environ.get('DB_PASSWORD'),
-              'host': os.environ.get('DB_HOST'),
-              'port': os.environ.get('DB_PORT')}
+    pg_dsl = {'dbname': os.environ.get('POSTGRES_DB'),
+              'user': os.environ.get('POSTGRES_USER'),
+              'password': os.environ.get('POSTGRES_PASSWORD'),
+              'host': os.environ.get('POSTGRES_HOST'),
+              'port': os.environ.get('POSTGRES_PORT')}
     conn = psycopg2.connect(**pg_dsl, cursor_factory=DictCursor)
     return conn
 
@@ -40,8 +40,9 @@ if __name__ == '__main__':
         with postgres_conn_context() as pg_conn:
 
             extractor = DataExtractor(pg_conn)
-            es_client = Elasticsearch(os.environ.get('ES_URL'))
-
+            es_client = Elasticsearch(os.environ.get('ES_DOCKER_URL'))
+            if not es_client.indices.exists(index="movies"):
+                es_client.indices.create(index='example_index', body=movies_index)
             while True:
                 data = extractor.get_film_data(batch_size)
                 if not data:

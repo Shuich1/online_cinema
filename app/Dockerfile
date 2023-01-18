@@ -20,10 +20,12 @@ COPY ./uwsgi/uwsgi.ini uwsgi.ini
 RUN  mkdir -p /var/www/static/ \
      && mkdir -p /var/www/media/ \
      && mkdir -p /opt/app/static/ \
-     && mkdir -p /opt/app/staticfiles/ \
+     && mkdir -p /opt/app/movies/static/ \
      && mkdir -p /opt/app/media/ \
      && pip install --upgrade pip \
-     && pip install -r requirements.txt
+     && pip install -r requirements.txt \
+     && apt-get update  \
+     && apt-get install -y netcat
 
 # Скопируйте всё оставшееся. Для ускорения сборки образа эту команду стоит разместить ближе к концу файла.
 COPY . .
@@ -31,6 +33,4 @@ COPY . .
 # Укажите порт, на котором приложение будет доступно внутри Docker-сети
 EXPOSE 8000
 
-RUN python3 manage.py collectstatic --no-input
-
-ENTRYPOINT ["uwsgi", "--strict", "--ini", "uwsgi.ini"]
+ENTRYPOINT ["bash", "entrypoint.sh"]
