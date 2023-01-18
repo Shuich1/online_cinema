@@ -42,7 +42,7 @@ if __name__ == '__main__':
             extractor = DataExtractor(pg_conn)
             es_client = Elasticsearch(os.environ.get('ES_DOCKER_URL'))
             if not es_client.indices.exists(index="movies"):
-                es_client.indices.create(index='example_index', body=movies_index)
+                es_client.indices.create(index='movies', body=movies_index)
             while True:
                 data = extractor.get_film_data(batch_size)
                 if not data:
