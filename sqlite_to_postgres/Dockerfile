@@ -8,6 +8,10 @@ ENV PYTHONUNBUFFERED 1
 COPY requirements.txt requirements.txt
 
 RUN pip install --upgrade pip \
-    && pip install -r requirements.txt
+    && pip install -r requirements.txt \
+    && apt-get update  \
+    && apt-get install -y netcat
 
 COPY .. .
+
+ENTRYPOINT ["python3", "main.py"]
