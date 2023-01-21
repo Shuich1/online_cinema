@@ -1,4 +1,3 @@
-from dotenv import load_dotenv
 import os
 import psycopg2
 from elasticsearch7 import Elasticsearch
@@ -10,10 +9,9 @@ from psycopg2.extras import DictCursor
 from psycopg2 import OperationalError
 from extract import DataExtractor
 from transform import transformer
-from load import loader, movies_index
+from load import loader, index_mappings, index_settings
 
-
-load_dotenv()
+logging.basicConfig(level=logging.INFO)
 
 
 @backoff.on_exception(backoff.expo, OperationalError, max_time=60)
@@ -36,18 +34,22 @@ def postgres_conn_context():
 
 if __name__ == '__main__':
     batch_size = int(os.environ.get('BATCH_SIZE'))
+    indexes = ['movies', 'genres', 'persons']
     while True:
         with postgres_conn_context() as pg_conn:
 
             extractor = DataExtractor(pg_conn)
             es_client = Elasticsearch(os.environ.get('ES_DOCKER_URL'))
-            if not es_client.indices.exists(index="movies"):
-                es_client.indices.create(index='example_index', body=movies_index)
-            while True:
-                data = extractor.get_film_data(batch_size)
-                if not data:
-                    break
-                t_data = transformer(data)
-                rows_count, errors = loader(es_client, t_data)
+            # iterating through indexes
+            for index in indexes:
+                if not es_client.indices.exists(index=index):
+                    index_dict = dict(index_mappings[index], **index_settings)
+                    es_client.indices.create(index=index, body=index_dict)
+                while True:
+                    data = extractor.get_data(batch_size, index)
+                    if not data:
+                        break
+                    t_data = transformer(data, index)
+                    rows_count, errors = loader(es_client, t_data, index)
             logging.info('All data transferred.')
         sleep(int(os.getenv('TIME_TO_SLEEP')))

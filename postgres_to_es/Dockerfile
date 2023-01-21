@@ -12,6 +12,4 @@ RUN pip install --upgrade pip \
 
 COPY .. .
 
-RUN ["chmod", "+x", "/opt/etl/run_etl.sh"]
-
 ENTRYPOINT ["python", "main_process.py"]
