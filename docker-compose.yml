@@ -76,7 +76,6 @@ services:
         condition: service_healthy
     volumes:
       - ./.env:/opt/sqlite_to_postgres/.env:ro
-    command: python3 main.py
 
 volumes:
   database:
