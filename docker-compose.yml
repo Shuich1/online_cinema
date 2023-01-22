@@ -9,7 +9,7 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -44,7 +44,7 @@ services:
 
   elastic:
     container_name: elastic
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.7-arm64
+    image: elasticsearch:7.17.8
     environment:
       - discovery.type=single-node
     volumes:
@@ -76,6 +76,11 @@ services:
         condition: service_healthy
     volumes:
       - ./.env:/opt/sqlite_to_postgres/.env:ro
+
+  redis:
+    image: redis:7.0.8
+    expose:
+      - "6379"
 
 volumes:
   database:
