@@ -15,6 +15,5 @@ This application includes an Admin Panel written in Django framework and an asyn
 5. Run `make stop` in the root directory to stop the application
 
 ## Usage
-- The Django admin will be available at http://127.0.0.1:8000/admin
-- The Django API will be available at http://127.0.0.1:8000/api/v1/movies and http://127.0.0.1:8000/api/v1/movies/{id}
-- The FastAPI documentation will be available at http://127.0.0.1:8001/api/openapi Check the documentation for more information about the API
+- The Django admin will be available at http://127.0.0.1/admin
+- The FastAPI documentation will be available at http://127.0.0.1/api/openapi Check the documentation for more information about the API
