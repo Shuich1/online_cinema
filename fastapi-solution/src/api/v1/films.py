@@ -17,9 +17,10 @@ router = APIRouter()
 async def films(
     film_service: FilmService = Depends(get_film_service),
     sort: Union[str, None] = Query(None, description='Sort by something like imdb_rating', alias='sort'),
-    genre: Union[str, None] = Query(None, description='Filter by genre uuid', alias='filter[genre]',)
+    genre: Union[str, None] = Query(None, description='Filter by genre uuid', alias='filter[genre]',),
+    size: Union[int, None] = Query(None, description='Limit the number of results', alias='size')
     ) -> list[Film]:
-    films = await film_service.get_all(sort, genre)
+    films = await film_service.get_all(sort, genre, size)
     if not films:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='films not found')
     return films
