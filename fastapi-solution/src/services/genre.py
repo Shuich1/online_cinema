@@ -17,22 +17,19 @@ class GenreService:
         self.redis = redis
         self.elastic = elastic
 
-    # get_by_id возвращает объект фильма. Он опционален, так как фильм может отсутствовать в базе
     async def get_by_id(self, genre_id: str) -> Optional[Genre]:
-        # Пытаемся получить данные из кеша, потому что оно работает быстрее
         genre = await self._genre_from_cache(genre_id)
         if not genre:
             genre = await self._get_genre_from_elastic(genre_id)
             if not genre:
-                # Если он отсутствует в Elasticsearch, значит, фильма вообще нет в базе
                 return None
-            # Сохраняем фильм в кеш
+
             await self._put_genre_to_cache(genre)
 
         return genre
 
-    async def get_all_rows(self) -> Optional[list[Genre]]:
-        docs = await self.elastic.search(index='genres')
+    async def get_all(self) -> Optional[list[Genre]]:
+        docs = await self.elastic.search(index='genres', body={'query': {'match_all': {}}})
         return [Genre(**doc['_source']) for doc in docs['hits']['hits']]
 
     async def _get_genre_from_elastic(self, genre_id: str) -> Optional[Genre]:
@@ -47,7 +44,6 @@ class GenreService:
         if not data:
             return None
 
-        # pydantic предоставляет удобное API для создания объекта моделей из json
         genre = Genre.parse_raw(data)
         return genre
 
