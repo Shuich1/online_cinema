@@ -1,7 +1,7 @@
 from http import HTTPStatus
-from typing import Optional
+from typing import Optional, Union
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from services.person import PersonService, get_person_service
 
@@ -32,9 +32,11 @@ async def person_details(
 
 @router.get('/', response_model=list[Person])
 async def persons(
-    person_service: PersonService = Depends(get_person_service)
+    person_service: PersonService = Depends(get_person_service),
+    size: Union[int, None] = Query(None, description='Limit the number of results',
+    alias='size'
 ) -> list[Person]:
-    results = await person_service.get_all()
+    results = await person_service.get_all(size)
     if not persons:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,

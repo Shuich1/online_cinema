@@ -26,13 +26,13 @@ class PersonService:
 
         return person
 
-    async def get_all(self) -> list[Person]:
+    async def get_all(self, size) -> list[Person]:
         try:
             res = await self.elastic.search(
-                index='persons',
-                body={'query': {'match_all': {}}},
-                size=100
-            )
+            index='persons',
+            body={'query': {'match_all': {}}},
+            size=size
+           )
             return [Person(**hit['_source']) for hit in res['hits']['hits']]
         except NotFoundError:
             return []
