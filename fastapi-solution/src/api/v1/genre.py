@@ -8,8 +8,11 @@ from services.genre import GenreService, get_genre_service
 router = APIRouter()
 
 @router.get('/', response_model=list[Genre])
-async def genres(genre_service: GenreService = Depends(get_genre_service)) -> list[Genre]:
-    genres = await genre_service.get_all()
+async def genres(
+    genre_service: GenreService = Depends(get_genre_service),
+    size: int = 100,
+    ) -> list[Genre]:
+    genres = await genre_service.get_all(size)
     return genres
 
 
