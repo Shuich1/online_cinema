@@ -11,10 +11,11 @@ def orjson_dumps(v, *, default):
     return orjson.dumps(v, default=default).decode()
 
 
-class Writer(BaseModel):
+class Person(BaseModel):
     id: str
     full_name: str
-    # films
+    roles: Optional[list[str]]
+    film_ids: Optional[list[str]]
 
     class Config:
         # Заменяем стандартную работу с json на более быструю

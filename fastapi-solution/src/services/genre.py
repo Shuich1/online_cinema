@@ -5,9 +5,9 @@ from aioredis import Redis
 from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
 
-from ..db.elastic import get_elastic
-from ..db.redis import get_redis
-from ..models.genre import Genre
+from db.elastic import get_elastic
+from db.redis import get_redis
+from models.genre import Genre
 
 GENRE_CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
 
@@ -30,6 +30,10 @@ class GenreService:
             await self._put_genre_to_cache(genre)
 
         return genre
+
+    async def get_all_rows(self) -> Optional[list[Genre]]:
+        docs = await self.elastic.search(index='genres')
+        return [Genre(**doc['_source']) for doc in docs['hits']['hits']]
 
     async def _get_genre_from_elastic(self, genre_id: str) -> Optional[Genre]:
         try:
