@@ -22,6 +22,11 @@ services:
     build: ./app
     env_file:
       - .env
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --silent ${ALLOWED_HOSTS}:${DJANGO_PORT} >/dev/null || exit 1" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     depends_on:
       postgres:
         condition: service_healthy
@@ -73,6 +78,8 @@ services:
     build: ./sqlite_to_postgres
     depends_on:
       postgres:
+        condition: service_healthy
+      django:
         condition: service_healthy
     volumes:
       - ./.env:/opt/sqlite_to_postgres/.env:ro
