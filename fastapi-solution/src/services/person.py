@@ -48,7 +48,7 @@ class PersonService:
         return Person(**doc['_source'])
 
     async def _person_from_cache(self, person_id: str) -> Optional[Person]:
-        data = await self.redis.get(person_id)
+        data = await self.redis.get(f'person_id_{person.id}')
         if not data:
             return None
 
@@ -57,7 +57,7 @@ class PersonService:
 
     async def _put_person_to_cache(self, person: Person):
         await self.redis.set(
-            person.id,
+            f'person_id_{person.id}',
             person.json(),
             expire=PERSON_CACHE_EXPIRE_IN_SECONDS
         )

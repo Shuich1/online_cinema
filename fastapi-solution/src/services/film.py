@@ -77,7 +77,7 @@ class FilmService:
         return Film(**doc['_source'])
 
     async def _film_from_cache(self, film_id: str) -> Optional[Film]:
-        data = await self.redis.get(film_id)
+        data = await self.redis.get(f'film_id_{film.id}')
         if not data:
             return None
 
@@ -86,7 +86,7 @@ class FilmService:
 
     async def _put_film_to_cache(self, film: Film):
         await self.redis.set(
-            film.id,
+            f'film_id_{film.id}',
             film.json(),
             expire=FILM_CACHE_EXPIRE_IN_SECONDS
         )
