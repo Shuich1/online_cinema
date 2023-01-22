@@ -28,7 +28,7 @@ class FilmService:
         return film
 
 
-    async def get_all(self, sort: Union[str, None], genre: Union[str, None]) -> list[Film]:
+    async def get_all(self, sort: Union[str, None], genre: Union[str, None], size: Union[int, None] = 10) -> list[Film]:
         try:
             query = {
                 'match_all': {}
@@ -60,7 +60,7 @@ class FilmService:
                     'query': query,
                 },
                 sort=sort,
-                size=1000,
+                size=size,
             )
             return [Film(**hit['_source']) for hit in res['hits']['hits']]
         except NotFoundError:
