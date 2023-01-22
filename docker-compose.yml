@@ -17,38 +17,38 @@ services:
       - ./db_init.sql:/docker-entrypoint-initdb.d/db_init.sql
       - ./database:/var/lib/postgresql/data
 
-  django:
-    container_name: django
-    build: ./app
-    env_file:
-      - .env
-    depends_on:
-      postgres:
-        condition: service_healthy
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./app/static:/opt/app/static:rw
-
-  nginx:
-    container_name: nginx
-    image: nginx:1.23.2
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/config:/etc/nginx/conf.d:ro
-      - ./app/static:/data/static:ro
-    depends_on:
-      - django
-    ports:
-      - "80:80"
+#  django:
+#    container_name: django
+#    build: ./app
+#    env_file:
+#      - .env
+#    depends_on:
+#      postgres:
+#        condition: service_healthy
+#    ports:
+#      - "8000:8000"
+#    volumes:
+#      - ./app/static:/opt/app/static:rw
+#
+#  nginx:
+#    container_name: nginx
+#    image: nginx:1.23.2
+#    volumes:
+#      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+#      - ./nginx/config:/etc/nginx/conf.d:ro
+#      - ./app/static:/data/static:ro
+#    depends_on:
+#      - django
+#    ports:
+#      - "80:80"
 
   elastic:
     container_name: elastic
     image: elasticsearch:7.17.8
     environment:
       - discovery.type=single-node
-    volumes:
-      - ./elasticsearch-data:/usr/share/elasticsearch/data
+#    volumes:
+#      - ./elasticsearch-data:/usr/share/elasticsearch/data
     healthcheck:
       test: ["CMD-SHELL", "curl --silent ${ES_URL}  >/dev/null || exit 1"]
       interval: 5s
@@ -68,19 +68,34 @@ services:
       elastic:
         condition: service_healthy
 
-  sqlite_to_pg:
-    container_name: sqlite_to_pg
-    build: ./sqlite_to_postgres
-    depends_on:
-      postgres:
-        condition: service_healthy
-    volumes:
-      - ./.env:/opt/sqlite_to_postgres/.env:ro
+#  sqlite_to_pg:
+#    container_name: sqlite_to_pg
+#    build: ./sqlite_to_postgres
+#    depends_on:
+#      postgres:
+#        condition: service_healthy
+#    volumes:
+#      - ./.env:/opt/sqlite_to_postgres/.env:ro
 
   redis:
     image: redis:7.0.8
-    expose:
-      - "6379"
+    ports:
+      - "6379:6379"
+
+  fastapi:
+    container_name: fastapi
+    build: ./fastapi-solution
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      elastic:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    ports:
+      - "8001:8001"
 
 volumes:
   database:
