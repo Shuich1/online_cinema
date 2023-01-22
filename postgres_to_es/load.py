@@ -59,6 +59,19 @@ index_mappings = {
                 "genre": {
                     "type": "keyword"
                 },
+                "genres": {
+                    "type": "nested",
+                    "dynamic": "strict",
+                    "properties": {
+                        "id": {
+                            "type": "keyword"
+                        },
+                        "name": {
+                            "type": "text",
+                            "analyzer": "ru_en"
+                        }
+                    }
+                },
                 "title": {
                     "type": "text",
                     "analyzer": "ru_en",
