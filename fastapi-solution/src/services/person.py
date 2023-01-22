@@ -2,11 +2,10 @@ from functools import lru_cache
 from typing import Optional
 
 from aioredis import Redis
-from elasticsearch import AsyncElasticsearch, NotFoundError
-from fastapi import Depends
-
 from db.elastic import get_elastic
 from db.redis import get_redis
+from elasticsearch import AsyncElasticsearch, NotFoundError
+from fastapi import Depends
 from models.person import Person
 
 PERSON_CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
@@ -29,12 +28,19 @@ class PersonService:
 
     async def get_all(self) -> list[Person]:
         try:
-            res = await self.elastic.search(index='persons', body={'query': {'match_all': {}}}, size=100)
+            res = await self.elastic.search(
+                index='persons',
+                body={'query': {'match_all': {}}},
+                size=100
+            )
             return [Person(**hit['_source']) for hit in res['hits']['hits']]
         except NotFoundError:
             return []
 
-    async def _get_person_from_elastic(self, person_id: str) -> Optional[Person]:
+    async def _get_person_from_elastic(
+        self,
+        person_id: str
+    ) -> Optional[Person]:
         try:
             doc = await self.elastic.get('persons', person_id)
         except NotFoundError:
@@ -50,7 +56,11 @@ class PersonService:
         return person
 
     async def _put_person_to_cache(self, person: Person):
-        await self.redis.set(person.id, person.json(), expire=PERSON_CACHE_EXPIRE_IN_SECONDS)
+        await self.redis.set(
+            person.id,
+            person.json(),
+            expire=PERSON_CACHE_EXPIRE_IN_SECONDS
+        )
 
 
 @lru_cache()

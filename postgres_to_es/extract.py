@@ -1,8 +1,8 @@
-from psycopg2.extensions import connection as _connection
-from helpers.state_check import State, JsonFileStorage
 import logging
-from helpers.models import *
 
+from helpers.models import *
+from helpers.state_check import JsonFileStorage, State
+from psycopg2.extensions import connection as _connection
 
 
 class DataExtractor:

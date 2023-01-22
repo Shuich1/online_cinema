@@ -1,6 +1,7 @@
 import uuid
+
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.translation import gettext_lazy as _
 
 
@@ -9,7 +10,6 @@ class TimeStampedMixin(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        # Этот параметр указывает Django, что этот класс не является представлением таблицы
         abstract = True
 
 
@@ -21,15 +21,11 @@ class UUIDMixin(models.Model):
 
 
 class Genre(UUIDMixin, TimeStampedMixin):
-    # Первым аргументом обычно идёт человекочитаемое название поля
     name = models.CharField(_('name'), max_length=255)
-    # blank=True делает поле необязательным для заполнения.
     description = models.TextField(_('description'), blank=True)
 
     class Meta:
-        # Ваши таблицы находятся в нестандартной схеме. Это нужно указать в классе модели
         db_table = "content\".\"genre"
-        # Следующие два поля отвечают за название модели в интерфейсе
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
 
@@ -42,7 +38,6 @@ class Person(UUIDMixin, TimeStampedMixin):
 
     class Meta:
         db_table = "content\".\"person"
-        # Следующие два поля отвечают за название модели в интерфейсе
         verbose_name = 'Актер'
         verbose_name_plural = 'Актеры'
 
@@ -56,9 +51,7 @@ class Filmwork(UUIDMixin, TimeStampedMixin):
         movie = 'movie'
         tv_show = 'tv_show'
 
-    # Первым аргументом обычно идёт человекочитаемое название поля
     title = models.CharField(_('title'), max_length=255)
-    # blank=True делает поле необязательным для заполнения.
     description = models.TextField(_('description'), blank=True)
     creation_date = models.DateField(_('film date creation'))
     rating = models.FloatField(_('rating'), blank=True,
@@ -67,16 +60,22 @@ class Filmwork(UUIDMixin, TimeStampedMixin):
     type = models.CharField(_('type'), max_length=255, choices=Type.choices)
     genres = models.ManyToManyField(Genre, through='GenreFilmwork')
     persons = models.ManyToManyField(Person, through='PersonFilmwork')
-    file_path = models.FileField(_('file'), blank=True, null=True, upload_to='movies/')
+    file_path = models.FileField(
+        _('file'),
+        blank=True,
+        null=True,
+        upload_to='movies/'
+    )
 
     class Meta:
-        # Ваши таблицы находятся в нестандартной cхеме. Это нужно указать в классе модели
         db_table = "content\".\"film_work"
-        # Следующие два поля отвечают за название модели в интерфейсе
         verbose_name = 'Кинопроизоведение'
         verbose_name_plural = 'Кинопроизоведения'
         indexes = [
-            models.Index(fields=['creation_date'], name='film_work_creation_date_idx'),
+            models.Index(
+                fields=['creation_date'],
+                name='film_work_creation_date_idx'
+            ),
         ]
 
     def __str__(self):
@@ -101,5 +100,8 @@ class PersonFilmwork(UUIDMixin):
     class Meta:
         db_table = "content\".\"person_film_work"
         indexes = [
-            models.Index(fields=['film_work_id', 'person_id'], name='film_work_person_idx'),
+            models.Index(
+                fields=['film_work_id', 'person_id'],
+                name='film_work_person_idx'
+            ),
         ]

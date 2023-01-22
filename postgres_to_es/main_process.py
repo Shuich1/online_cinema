@@ -1,15 +1,16 @@
+import logging
 import os
+from contextlib import contextmanager
+from time import sleep
+
+import backoff
 import psycopg2
 from elasticsearch7 import Elasticsearch
-from contextlib import contextmanager
-import backoff
-from time import sleep
-import logging
-from psycopg2.extras import DictCursor
-from psycopg2 import OperationalError
 from extract import DataExtractor
+from load import index_mappings, index_settings, loader
+from psycopg2 import OperationalError
+from psycopg2.extras import DictCursor
 from transform import transformer
-from load import loader, index_mappings, index_settings
 
 logging.basicConfig(level=logging.INFO)
 
