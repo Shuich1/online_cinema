@@ -3,7 +3,7 @@ from typing import Optional, Union
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
-from services.person import PersonService, get_person_service
+from src.services.person import PersonService, get_person_service
 
 router = APIRouter()
 

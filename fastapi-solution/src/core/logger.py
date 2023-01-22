@@ -1,4 +1,4 @@
-from config import settings
+from .config import settings
 from logging import config as logging_config
 
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
