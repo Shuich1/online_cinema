@@ -163,3 +163,4 @@ cython_debug/
 /app/static
 *.env
 pg_storage.json
+elasticsearch-data
