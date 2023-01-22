@@ -25,8 +25,10 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      elastic:
-        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app/static:/opt/app/static:rw
 
   nginx:
     container_name: nginx
@@ -39,6 +41,21 @@ services:
       - django
     ports:
       - "80:80"
+
+  elastic:
+    container_name: elastic
+    image: elasticsearch:7.17.8
+    environment:
+      - discovery.type=single-node
+    #    volumes:
+    #      - ./elasticsearch-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --silent ${ES_URL}  >/dev/null || exit 1" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "9200:9200"
 
   etl:
     container_name: etl
