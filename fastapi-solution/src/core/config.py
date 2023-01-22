@@ -1,24 +1,24 @@
 import os
-from logging import config as logging_config
+from pydantic import BaseSettings, Field
 
-from core.logger import LOGGING
 
-# Применяем настройки логирования
-logging_config.dictConfig(LOGGING)
+class Settings(BaseSettings):
+    redis_host: str = Field(..., env='REDIS_HOST')
+    redis_port: int = Field(6379, env='REDIS_PORT')
 
-# Название проекта. Используется в Swagger-документации
-PROJECT_NAME = os.getenv('PROJECT_NAME', 'movies')
+    elastic_host: str = Field(..., env='ELASTIC_HOST')
+    elastic_port: int = Field(9200, env='ELASTIC_PORT')
 
-# Настройки Redis
-REDIS_HOST = os.getenv('REDIS_HOST', '127.0.0.1')
-REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
+    fastapi_host: str = Field('0.0.0.0', env='FASTAPI_HOST')
+    fastapi_port: int = Field(..., env='FASTAPI_PORT')
 
-# Настройки Elasticsearch
-ELASTIC_HOST = os.getenv('ELASTIC_HOST', '127.0.0.1')
-ELASTIC_PORT = int(os.getenv('ELASTIC_PORT', 9200))
+    project_name: str = Field('Online-cinema', env='PROJECT_NAME')
 
-FASTAPI_HOST = os.getenv('FASTAPI_HOST', '0.0.0.0')
-FASTAPI_PORT = int(os.getenv('FASTAPI_PORT', 8001))
+    base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Корень проекта
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    logging_level: str = Field('INFO', env='LOGGING_LEVEL')
+    class Config:
+        env_file = '.env'
+        env_file_encoding = 'utf-8'
+
+settings = Settings()
