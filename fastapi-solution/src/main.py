@@ -1,15 +1,11 @@
-import logging
-
 import aioredis
 import uvicorn
+from api.v1 import films, genre, person
+from core import config
+from db import elastic, redis
 from elasticsearch import AsyncElasticsearch
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
-
-from api.v1 import films, genre, person
-from core import config
-from core.logger import LOGGING
-from db import elastic, redis
 
 app = FastAPI(
     title="Read-only API для онлайн-кинотеатра",
@@ -23,8 +19,14 @@ app = FastAPI(
 
 @app.on_event('startup')
 async def startup():
-    redis.redis = await aioredis.create_redis_pool((config.REDIS_HOST, config.REDIS_PORT), minsize=10, maxsize=20)
-    elastic.es = AsyncElasticsearch(hosts=[f'{config.ELASTIC_HOST}:{config.ELASTIC_PORT}'])
+    redis.redis = await aioredis.create_redis_pool(
+        (config.REDIS_HOST, config.REDIS_PORT),
+        minsize=10,
+        maxsize=20
+    )
+    elastic.es = AsyncElasticsearch(
+        hosts=[f'{config.ELASTIC_HOST}:{config.ELASTIC_PORT}']
+    )
 
 
 @app.on_event('shutdown')

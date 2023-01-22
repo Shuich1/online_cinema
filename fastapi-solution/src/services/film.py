@@ -2,11 +2,10 @@ from functools import lru_cache
 from typing import Optional, Union
 
 from aioredis import Redis
-from elasticsearch import AsyncElasticsearch, NotFoundError
-from fastapi import Depends
-
 from db.elastic import get_elastic
 from db.redis import get_redis
+from elasticsearch import AsyncElasticsearch, NotFoundError
+from fastapi import Depends
 from models.film import Film
 
 FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5
@@ -27,8 +26,12 @@ class FilmService:
 
         return film
 
-
-    async def get_all(self, sort: Union[str, None], genre: Union[str, None], size: Union[int, None] = 10) -> list[Film]:
+    async def get_all(
+        self,
+        sort: Union[str, None],
+        genre: Union[str, None],
+        size: Union[int, None] = 10
+    ) -> list[Film]:
         try:
             query = {
                 'match_all': {}
@@ -51,9 +54,9 @@ class FilmService:
                         }
                     }
                 }
-            
+
             sort = sort[1:] + ':desc' if sort and sort.startswith('-') else sort
-    
+
             res = await self.elastic.search(
                 index='movies',
                 body={
@@ -82,7 +85,11 @@ class FilmService:
         return film
 
     async def _put_film_to_cache(self, film: Film):
-        await self.redis.set(film.id, film.json(), expire=FILM_CACHE_EXPIRE_IN_SECONDS)
+        await self.redis.set(
+            film.id,
+            film.json(),
+            expire=FILM_CACHE_EXPIRE_IN_SECONDS
+        )
 
 
 @lru_cache()

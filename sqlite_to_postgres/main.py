@@ -1,11 +1,12 @@
+import os
 import sqlite3
 from contextlib import contextmanager
-import os
+
 import psycopg2
-from psycopg2.extras import DictCursor
-from load_data import SQLiteLoader
-from upload_data import PGUploader
 from dotenv import load_dotenv
+from load_data import SQLiteLoader
+from psycopg2.extras import DictCursor
+from upload_data import PGUploader
 
 load_dotenv()
 

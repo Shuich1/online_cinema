@@ -1,6 +1,7 @@
-from elasticsearch7 import Elasticsearch, helpers, ConnectionTimeout
 import logging
+
 import backoff
+from elasticsearch7 import ConnectionTimeout, Elasticsearch, helpers
 
 index_settings = {
     "settings": {

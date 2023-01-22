@@ -1,4 +1,5 @@
 import dataclasses
+
 from psycopg2 import OperationalError
 from psycopg2.extensions import connection as _connection
 from psycopg2.extras import execute_batch

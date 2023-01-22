@@ -1,6 +1,6 @@
-import uuid
-from dataclasses import dataclass, fields, field
 import dataclasses
+import uuid
+from dataclasses import dataclass, field, fields
 from datetime import datetime
 
 

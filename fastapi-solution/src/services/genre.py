@@ -2,11 +2,10 @@ from functools import lru_cache
 from typing import Optional, Union
 
 from aioredis import Redis
-from elasticsearch import AsyncElasticsearch, NotFoundError
-from fastapi import Depends
-
 from db.elastic import get_elastic
 from db.redis import get_redis
+from elasticsearch import AsyncElasticsearch, NotFoundError
+from fastapi import Depends
 from models.genre import Genre
 
 GENRE_CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
@@ -29,7 +28,11 @@ class GenreService:
         return genre
 
     async def get_all(self, size: Union[int, None]) -> Optional[list[Genre]]:
-        docs = await self.elastic.search(index='genres', body={'query': {'match_all': {}}}, size=size)
+        docs = await self.elastic.search(
+            index='genres',
+            body={'query': {'match_all': {}}},
+            size=size
+        )
         return [Genre(**doc['_source']) for doc in docs['hits']['hits']]
 
     async def _get_genre_from_elastic(self, genre_id: str) -> Optional[Genre]:
@@ -48,7 +51,11 @@ class GenreService:
         return genre
 
     async def _put_genre_to_cache(self, genre: Genre):
-        await self.redis.set(genre.id, genre.json(), expire=GENRE_CACHE_EXPIRE_IN_SECONDS)
+        await self.redis.set(
+            genre.id,
+            genre.json(),
+            expire=GENRE_CACHE_EXPIRE_IN_SECONDS
+        )
 
 
 @lru_cache()

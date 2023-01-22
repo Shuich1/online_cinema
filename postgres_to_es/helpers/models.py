@@ -1,4 +1,3 @@
-import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 
@@ -30,4 +29,3 @@ class Genre:
     id: str = field(default='')
     name: str = field(default='')
     updated_at: datetime = field(default_factory=datetime.now)
-
