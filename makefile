@@ -3,7 +3,7 @@ PROJECT_NAME = ETL
 all:
 	@echo "make start - Запуск контейнеров."
 	@echo "make stop - Выключение контейнера."
-
+	@echo "make createsuperuser - Создание суперпользователя."
 start:
 	docker-compose up -d --build
 stop:
