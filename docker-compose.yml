@@ -43,7 +43,10 @@ services:
       - ./nginx/config:/etc/nginx/conf.d:ro
       - ./app/static:/data/static:ro
     depends_on:
-      - django
+      django:
+        condition: service_healthy
+      fastapi:
+        condition: service_healthy
     ports:
       - "80:80"
 
@@ -56,9 +59,9 @@ services:
     #      - ./elasticsearch-data:/usr/share/elasticsearch/data
     healthcheck:
       test: [ "CMD-SHELL", "curl --silent ${ES_URL}  >/dev/null || exit 1" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      interval: 10s
+      timeout: 10s
+      retries: 10
     expose:
       - "9200"
 
@@ -92,6 +95,11 @@ services:
   fastapi:
     container_name: fastapi
     build: ./fastapi-solution
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --silent ${FASTAPI_HOST}:${FASTAPI_PORT}  >/dev/null || exit 1" ]
+      interval: 10s
+      timeout: 10s
+      retries: 10
     env_file:
       - .env
     depends_on:
@@ -102,7 +110,7 @@ services:
       redis:
         condition: service_started
     expose:
-      - "8001"
+      - "80"
 
 volumes:
   database:
