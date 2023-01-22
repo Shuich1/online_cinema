@@ -82,6 +82,21 @@ services:
     expose:
       - "6379"
 
+  fastapi:
+    container_name: fastapi
+    build: ./fastapi-solution
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      elastic:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    ports:
+      - "8001:8001"
+
 volumes:
   database:
   static_volume:
