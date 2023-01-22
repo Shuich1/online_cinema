@@ -18,7 +18,7 @@ class Film(BaseModel):
     genre: Optional[list[str]]
     imdb_rating: Optional[float]
     # created: datetime.datetime
-    director: Optional[str]
+    director: Optional[list[str]]
     actors: Optional[list[dict[str, str]]]
     writers: Optional[list[dict[str, str]]]
     actors_names: Optional[list[str]]
