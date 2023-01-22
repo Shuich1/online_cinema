@@ -28,6 +28,29 @@ services:
       elastic:
         condition: service_healthy
 
+  nginx:
+    container_name: nginx
+    image: nginx:1.23.2
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/config:/etc/nginx/conf.d:ro
+      - ./app/static:/data/static:ro
+    depends_on:
+      - django
+    ports:
+      - "80:80"
+
+  etl:
+    container_name: etl
+    build: ./postgres_to_es
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      elastic:
+        condition: service_healthy
+
   sqlite_to_pg:
     container_name: sqlite_to_pg
     build: ./sqlite_to_postgres
