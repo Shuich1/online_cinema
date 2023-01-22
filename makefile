@@ -8,3 +8,5 @@ start:
 	docker-compose up -d --build
 stop:
 	docker-compose down
+createsuperuser:
+	docker-compose exec django python manage.py createsuperuser
