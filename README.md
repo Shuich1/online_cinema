@@ -17,3 +17,8 @@ This application includes an Admin Panel written in Django framework and an asyn
 ## Usage
 - The Django admin will be available at http://127.0.0.1/admin
 - The FastAPI documentation will be available at http://127.0.0.1/api/openapi Check the documentation for more information about the API
+
+## Developers
+- Гребенников Илья (salliko)
+- Казмин Вадим (vimjk)
+- Журавков Владислав (Shuich1)
