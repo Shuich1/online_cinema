@@ -1,4 +1,5 @@
 import os
+
 from pydantic import BaseSettings, Field
 
 
@@ -17,8 +18,10 @@ class Settings(BaseSettings):
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     logging_level: str = Field('INFO', env='LOGGING_LEVEL')
+    
     class Config:
         env_file = '.env'
         env_file_encoding = 'utf-8'
+
 
 settings = Settings()

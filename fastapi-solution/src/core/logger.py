@@ -1,5 +1,6 @@
-from .config import settings
 from logging import config as logging_config
+
+from .config import settings
 
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 LOG_DEFAULT_HANDLERS = ['console', ]

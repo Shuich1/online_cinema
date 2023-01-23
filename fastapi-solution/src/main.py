@@ -1,10 +1,11 @@
 import aioredis
-from .api.v1 import films, genre, person
-from .core.config import settings
-from .db import elastic, redis
 from elasticsearch import AsyncElasticsearch
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
+
+from .api.v1 import films, genre, person
+from .core.config import settings
+from .db import elastic, redis
 
 app = FastAPI(
     title="Read-only API для онлайн-кинотеатра",
