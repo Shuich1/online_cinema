@@ -3,7 +3,7 @@ from typing import Optional, Union
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
-from services.person import PersonService, get_person_service
+from src.services.person import PersonService, get_person_service
 
 router = APIRouter()
 
@@ -15,7 +15,12 @@ class Person(BaseModel):
     film_ids: Optional[list[str]]
 
 
-@router.get('/{person_id}', response_model=Person)
+@router.get(
+    '/{person_id}',
+    response_model=Person,
+    summary='Person details',
+    description='Returns person details by person uuid'
+    )
 async def person_details(
     person_id: str,
     person_service: PersonService = Depends(get_person_service)
@@ -30,11 +35,19 @@ async def person_details(
     return Person(**person.dict())
 
 
-@router.get('/', response_model=list[Person])
+@router.get(
+    '/',
+    response_model=list[Person],
+    summary='All persons',
+    description='Returns all persons with films participated in'
+)
 async def persons(
     person_service: PersonService = Depends(get_person_service),
-    size: Union[int, None] = Query(None, description='Limit the number of results',
-    alias='size'
+    size: Union[int, None] = Query(
+        None,
+        description='Limit the number of results',
+        alias='size'
+    )
 ) -> list[Person]:
     results = await person_service.get_all(size)
     if not persons:

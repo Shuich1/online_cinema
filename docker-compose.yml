@@ -6,8 +6,8 @@ services:
     container_name: postgres
     env_file:
       - .env
-    ports:
-      - "5432:5432"
+    expose:
+      - "5432"
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
       interval: 5s
@@ -30,8 +30,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     volumes:
       - ./app/static:/opt/app/static:rw
 
@@ -43,7 +43,10 @@ services:
       - ./nginx/config:/etc/nginx/conf.d:ro
       - ./app/static:/data/static:ro
     depends_on:
-      - django
+      django:
+        condition: service_healthy
+      fastapi:
+        condition: service_healthy
     ports:
       - "80:80"
 
@@ -56,11 +59,11 @@ services:
     #      - ./elasticsearch-data:/usr/share/elasticsearch/data
     healthcheck:
       test: [ "CMD-SHELL", "curl --silent ${ES_URL}  >/dev/null || exit 1" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    ports:
-      - "9200:9200"
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    expose:
+      - "9200"
 
   etl:
     container_name: etl
@@ -86,12 +89,17 @@ services:
 
   redis:
     image: redis:7.0.8
-    ports:
-      - "6379:6379"
+    expose:
+      - "6379"
 
   fastapi:
     container_name: fastapi
     build: ./fastapi-solution
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --silent ${FASTAPI_HOST}:${FASTAPI_PORT}  >/dev/null || exit 1" ]
+      interval: 10s
+      timeout: 10s
+      retries: 10
     env_file:
       - .env
     depends_on:
@@ -101,8 +109,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-    ports:
-      - "8001:8001"
+    expose:
+      - "80"
 
 volumes:
   database:

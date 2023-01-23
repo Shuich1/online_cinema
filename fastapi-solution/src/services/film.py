@@ -2,11 +2,11 @@ from functools import lru_cache
 from typing import Optional, Union
 
 from aioredis import Redis
-from db.elastic import get_elastic
-from db.redis import get_redis
 from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
-from models.film import Film
+from src.db.elastic import get_elastic
+from src.db.redis import get_redis
+from src.models.film import Film
 
 FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5
 
@@ -77,7 +77,7 @@ class FilmService:
         return Film(**doc['_source'])
 
     async def _film_from_cache(self, film_id: str) -> Optional[Film]:
-        data = await self.redis.get(film_id)
+        data = await self.redis.get(f'film_id_{film_id}')
         if not data:
             return None
 
@@ -86,7 +86,7 @@ class FilmService:
 
     async def _put_film_to_cache(self, film: Film):
         await self.redis.set(
-            film.id,
+            f'film_id_{film.id}',
             film.json(),
             expire=FILM_CACHE_EXPIRE_IN_SECONDS
         )

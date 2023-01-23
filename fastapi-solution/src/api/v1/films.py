@@ -2,8 +2,8 @@ from http import HTTPStatus
 from typing import Union
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from models.film import Film
-from services.film import FilmService, get_film_service
+from src.models.film import Film
+from src.services.film import FilmService, get_film_service
 
 router = APIRouter()
 
@@ -12,7 +12,7 @@ router = APIRouter()
     '/',
     response_model=list[Film],
     summary='All films',
-    description='Returns all films'
+    description='Returns all films, optionally filtered by genre and sorted by something like imdb_rating'
 )
 async def films(
     film_service: FilmService = Depends(get_film_service),
@@ -41,7 +41,12 @@ async def films(
     return films
 
 
-@router.get('/{film_id}', response_model=Film)
+@router.get(
+    '/{film_id}',
+    response_model=Film,
+    summary='Film details',
+    description='Returns film details by film uuid'
+    )
 async def film_details(
     film_id: str,
     film_service: FilmService = Depends(get_film_service)

@@ -1,11 +1,11 @@
 import aioredis
-import uvicorn
-from api.v1 import films, genre, person
-from core import config
-from db import elastic, redis
 from elasticsearch import AsyncElasticsearch
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
+
+from .api.v1 import films, genre, person
+from .core.config import settings
+from .db import elastic, redis
 
 app = FastAPI(
     title="Read-only API для онлайн-кинотеатра",
@@ -20,12 +20,12 @@ app = FastAPI(
 @app.on_event('startup')
 async def startup():
     redis.redis = await aioredis.create_redis_pool(
-        (config.REDIS_HOST, config.REDIS_PORT),
+        (settings.redis_host, settings.redis_port),
         minsize=10,
         maxsize=20
     )
     elastic.es = AsyncElasticsearch(
-        hosts=[f'{config.ELASTIC_HOST}:{config.ELASTIC_PORT}']
+        hosts=[f'{settings.elastic_host}:{settings.elastic_port}']
     )
 
 
@@ -39,10 +39,3 @@ async def shutdown():
 app.include_router(films.router, prefix='/api/v1/films', tags=['films'])
 app.include_router(genre.router, prefix='/api/v1/genres', tags=['genres'])
 app.include_router(person.router, prefix='/api/v1/persons', tags=['persons'])
-
-if __name__ == '__main__':
-    uvicorn.run(
-        'main:app',
-        host=config.FASTAPI_HOST,
-        port=config.FASTAPI_PORT,
-    )
