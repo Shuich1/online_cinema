@@ -1,9 +1,10 @@
 from http import HTTPStatus
-from typing import Optional, Union
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from src.services.person import PersonService, get_person_service
+from src.models.film import Film
 
 router = APIRouter()
 
@@ -16,9 +17,42 @@ class Person(BaseModel):
 
 
 @router.get(
+    '/search',
+    response_model=list[Person],
+    summary='Search persons',
+    description='Returns all persons with search query match'
+)
+async def persons_search(
+    person_service: PersonService = Depends(get_person_service),
+    query: str = Query(
+        default=None,
+        description='Person search query',
+        alias='query'
+    ),
+    page: Optional[int] = Query(
+        default=1,
+        description='Page number of results',
+        alias='page[number]'
+    ),
+    size: Optional[int] = Query(
+        default=10,
+        description='Limit the number of results',
+        alias='page[size]'
+    )
+) -> list[Person]:
+    results = await person_service.search(query, page, size)
+    if not results:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='persons not found'
+        )
+    return results
+
+
+@router.get(
     '/{person_id}',
     response_model=Person,
-    summary='Person details',
+    summary='Search person by ID',
     description='Returns person details by person uuid'
     )
 async def person_details(
@@ -36,6 +70,26 @@ async def person_details(
 
 
 @router.get(
+    '/{person_id}/film',
+    response_model=list[dict],
+    summary='Person film info',
+    description='Returns person films details by person uuid'
+    )
+async def person_films(
+    person_id: str,
+    person_service: PersonService = Depends(get_person_service)
+) -> list[dict]:
+    films = await person_service.get_films_by_id(person_id)
+    if not films:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='person not found'
+        )
+
+    return films
+
+
+@router.get(
     '/',
     response_model=list[Person],
     summary='All persons',
@@ -43,14 +97,14 @@ async def person_details(
 )
 async def persons(
     person_service: PersonService = Depends(get_person_service),
-    size: Union[int, None] = Query(
-        None,
+    size: Optional[int] = Query(
+        default=10,
         description='Limit the number of results',
         alias='size'
     )
 ) -> list[Person]:
     results = await person_service.get_all(size)
-    if not persons:
+    if not results:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
             detail='persons not found'
