@@ -7,6 +7,7 @@ from fastapi import Depends
 from src.db.elastic import get_elastic
 from src.db.redis import get_redis
 from src.models.person import Person
+from src.services.film import FilmService
 
 PERSON_CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
 
@@ -26,20 +27,71 @@ class PersonService:
 
         return person
 
-    async def get_all(self, size) -> list[Person]:
+    async def get_films_by_id(self, person_id: str) -> Optional[list]:
+        films = FilmService(self.redis, self.elastic)
+        person = await self._person_from_cache(person_id)
+        if not person:
+            person = await self._get_person_from_elastic(person_id)
+            if not person:
+                return None
+            await self._put_person_to_cache(person)
+
+        films_info = [await films.get_by_id(film_id)
+                      for film_id in person.film_ids]
+        return [{'uuid': info.id,
+                 'title': info.title,
+                 'imdb_rating': info.imdb_rating} for info in films_info]
+
+    async def get_all(self,
+                      size: Optional[int]) -> list[Optional[Person]]:
         try:
             res = await self.elastic.search(
-                index='persons',
-                body={'query': {'match_all': {}}},
-                size=size
+                    index='persons',
+                    body={'query': {'match_all': {}}},
+                    size=size
             )
             return [Person(**hit['_source']) for hit in res['hits']['hits']]
         except NotFoundError:
             return []
 
+    async def search(self,
+                     query: str,
+                     page_number: Optional[int],
+                     size: Optional[int]) -> list[Optional[Person]]:
+        body = {
+                'query': {
+                        'multi_match': {
+                                'query': query,
+                                'fields': ['full_name',
+                                           'film_ids',
+                                           'roles']
+                        }
+                }
+        }
+        try:
+            page = await self.elastic.search(
+                    index='persons',
+                    body=body,
+                    size=size,
+                    scroll='2m'
+            )
+            scroll_id = page['_scroll_id']
+            hits = page['hits']['hits']
+
+            # get data starting from searches second page
+            if page_number > 1:
+                for _ in range(1, page_number):
+                    page = await self.elastic.scroll(scroll_id=scroll_id,
+                                                     scroll='2m')
+                    scroll_id = page['_scroll_id']
+                    hits = page['hits']['hits']
+            return [Person(**hit['_source']) for hit in hits]
+        except NotFoundError:
+            return []
+
     async def _get_person_from_elastic(
-        self,
-        person_id: str
+            self,
+            person_id: str
     ) -> Optional[Person]:
         try:
             doc = await self.elastic.get('persons', person_id)
@@ -57,9 +109,9 @@ class PersonService:
 
     async def _put_person_to_cache(self, person: Person):
         await self.redis.set(
-            f'person_id_{person.id}',
-            person.json(),
-            expire=PERSON_CACHE_EXPIRE_IN_SECONDS
+                f'person_id_{person.id}',
+                person.json(),
+                expire=PERSON_CACHE_EXPIRE_IN_SECONDS
         )
 
 
