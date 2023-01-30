@@ -5,7 +5,6 @@ from .testdata.es_mapping import index_mappings
 
 class TestSettings(BaseSettings):
     es_url: str = Field('http://elastic_test:9200', env='ES_TEST_URL')
-    es_index: str = Field('movies', env='ES_INDEX')
     es_id_field: str = Field('id', env='ES_ID_FIELD')
     es_index_mapping: dict = Field(index_mappings)
 
