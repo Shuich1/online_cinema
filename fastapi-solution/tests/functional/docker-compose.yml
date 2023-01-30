@@ -1,0 +1,53 @@
+version: '3'
+services:
+  fastapi_test:
+    container_name: fastapi_test
+    build: ../../.
+    env_file:
+      - .env
+    depends_on:
+      elastic_test:
+        condition: service_healthy
+      redis_test:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --silent ${FASTAPI_URL}/api/v1/ > /dev/null || exit 1" ]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    ports:
+      - "80:80"
+
+  elastic_test:
+    container_name: elastic_test
+    image: elasticsearch:7.17.8
+    environment:
+      - discovery.type=single-node
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --silent ${ES_TEST_URL}  >/dev/null || exit 1" ]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    ports:
+      - "9200:9200"
+  
+  redis_test:
+    container_name: redis_test
+    image: redis:7.0.8
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    ports:
+      - "6379:6379"
+
+  tests:
+    container_name: functional_tests
+    build: .
+    env_file:
+      - .env
+    depends_on:
+      fastapi_test:
+        condition: service_healthy
+    entrypoint: pytest src
