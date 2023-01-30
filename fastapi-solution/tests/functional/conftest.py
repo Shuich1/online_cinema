@@ -54,3 +54,14 @@ def es_write_data(es_client):
         if response['errors']:
             raise Exception('Ошибка записи данных в Elasticsearch')
     return inner
+
+@pytest.fixture
+def make_get_request():
+    async def inner(url: str, params: dict = None):
+        async with aiohttp.ClientSession() as session:
+            async with session.get(test_settings.service_url + '/api/v1' + url, params=params) as response:
+                return {
+                    'status': response.status,
+                    'json': await response.json()
+                }
+    return inner
