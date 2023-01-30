@@ -7,6 +7,7 @@ import pytest
 from elasticsearch import AsyncElasticsearch
 
 from .settings import test_settings
+from .testdata.es_data import movies_data, persons_data, genres_data
 
 
 @pytest.fixture(scope="session")
@@ -43,7 +44,7 @@ def get_es_bulk_query(data: list[dict], index: str, id_field: str) -> list[str]:
         ])
     return query
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def es_write_data(es_client):
     async def inner(data, index):
         bulk_query = get_es_bulk_query(data, index, test_settings.es_id_field)
@@ -65,3 +66,15 @@ def make_get_request():
                     'json': await response.json()
                 }
     return inner
+
+@pytest.fixture(scope="session", autouse=True)
+async def es_write_films(es_write_data):
+    await es_write_data(movies_data, 'movies')
+
+@pytest.fixture(scope="session", autouse=True)
+async def es_write_persons(es_write_data):
+    await es_write_data(persons_data, 'persons')
+
+@pytest.fixture(scope="session", autouse=True)
+async def es_write_genres(es_write_data):
+    await es_write_data(genres_data, 'genres')
