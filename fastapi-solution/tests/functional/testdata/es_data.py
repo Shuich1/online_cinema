@@ -63,7 +63,30 @@ movies_data = [{
             {'id': '999', 'name': 'Stan'},
             {'id': '000', 'name': 'Jack'}
         ],
-    } for _ in range(15)]
+    } for _ in range(15)] + [{
+        'id': '1',
+        'imdb_rating': 7.9,
+        'genre': ['Comedy', 'Sci-Fi'],
+        'genres': [
+            {'id': '333', 'name': 'Comedy'},
+            {'id': '222', 'name': 'Sci-Fi'}
+        ],
+        'title': 'The Worlds End',
+        'description': 'The end of the world',
+        'director': ['Edgar Wright'],
+        'actors_names': ['Simon Pegg', 'Nick Frost'],
+        'writers_names': ['Edgar Wright', 'Simon Pegg'],
+        'actors': [
+            {'id': '1110', 'name': 'Simon Pegg'},
+            {'id': '2220', 'name': 'Nick Frost'}
+        ],
+        'writers': [
+            {'id': '3330', 'name': 'Edgar Wright'},
+            {'id': '4440', 'name': 'Simon Pegg'}
+        ],
+    }]
+
+
 
 persons_data = [{
     'id': str(uuid.uuid4()),

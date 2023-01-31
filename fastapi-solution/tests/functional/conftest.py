@@ -8,7 +8,6 @@ from elasticsearch import AsyncElasticsearch
 
 from .settings import test_settings
 from .testdata.es_data import genres_data, movies_data, persons_data
-from .testdata.es_mapping import index_mappings, index_settings
 
 
 @pytest.fixture(scope="session")
@@ -49,7 +48,7 @@ def get_es_bulk_query(data: list[dict], index: str, id_field: str) -> list[str]:
 def es_write_data(es_client):
     async def inner(data, index):
         if not await es_client.indices.exists(index):
-            index_dict = dict(index_mappings[index], **index_settings)
+            index_dict = dict(test_settings.es_index_mappings[index], **test_settings.es_index_settings)
             await es_client.indices.create(index, body=index_dict)
 
         bulk_query = get_es_bulk_query(data, index, test_settings.es_id_field)
