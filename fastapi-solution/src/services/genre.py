@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Optional, Union
+from typing import Optional
 
 from aioredis import Redis
 from elasticsearch import AsyncElasticsearch, NotFoundError
@@ -27,7 +27,7 @@ class GenreService:
 
         return genre
 
-    async def get_all(self, size: Union[int, None]) -> Optional[list[Genre]]:
+    async def get_all(self, size: Optional[int]) -> Optional[list[Genre]]:
         docs = await self.elastic.search(
             index='genres',
             body={'query': {'match_all': {}}},
