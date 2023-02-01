@@ -67,7 +67,7 @@ async def films(
     size: Optional[int] = Query(
         default=10,
         description='Limit the number of results',
-        alias='size'
+        alias='page[size]'
     )
 ) -> list[Film]:
     films = await film_service.get_all(sort, genre, size)
