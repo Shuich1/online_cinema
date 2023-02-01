@@ -87,7 +87,6 @@ movies_data = [{
     }]
 
 
-
 persons_data = [{
     'id': str(uuid.uuid4()),
     'full_name': 'Ann Smith',
