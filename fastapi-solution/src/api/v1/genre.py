@@ -1,6 +1,7 @@
 from http import HTTPStatus
+from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from src.models.genre import Genre
 from src.services.genre import GenreService, get_genre_service
 
@@ -15,7 +16,11 @@ router = APIRouter()
 )
 async def genres(
     genre_service: GenreService = Depends(get_genre_service),
-    size: int = 100,
+    size: Optional[int] = Query(
+        default=10,
+        description='Limit the number of results',
+        alias='size'
+    ),
 ) -> list[Genre]:
     genres = await genre_service.get_all(size)
     return genres

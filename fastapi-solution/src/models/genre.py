@@ -11,8 +11,6 @@ def orjson_dumps(v, *, default):
 class Genre(BaseModel):
     id: str
     name: str
-    description: Optional[str]
-    rating: Optional[str]
 
     class Config:
         json_loads = orjson.loads

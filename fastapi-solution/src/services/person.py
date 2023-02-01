@@ -27,7 +27,7 @@ class PersonService:
 
         return person
 
-    async def get_films_by_id(self, person_id: str) -> Optional[list]:
+    async def get_films_by_id(self, person_id: str) -> Optional[list[dict]]:
         films = FilmService(self.redis, self.elastic)
         person = await self._person_from_cache(person_id)
         if not person:
@@ -62,9 +62,7 @@ class PersonService:
                 'query': {
                         'multi_match': {
                                 'query': query,
-                                'fields': ['full_name',
-                                           'film_ids',
-                                           'roles']
+                                'fields': list(Person.__fields__.keys())
                         }
                 }
         }

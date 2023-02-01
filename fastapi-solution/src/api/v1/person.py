@@ -4,7 +4,6 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from src.services.person import PersonService, get_person_service
-from src.models.film import Film
 
 router = APIRouter()
 
@@ -19,7 +18,7 @@ class Person(BaseModel):
 @router.get(
     '/search',
     response_model=list[Person],
-    summary='Search persons',
+    summary='Search for persons',
     description='Returns all persons with search query match'
 )
 async def persons_search(
@@ -40,11 +39,16 @@ async def persons_search(
         alias='page[size]'
     )
 ) -> list[Person]:
+    if not query:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='Search query is missing'
+        )
     results = await person_service.search(query, page, size)
     if not results:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
-            detail='persons not found'
+            detail='Persons are not found'
         )
     return results
 
@@ -52,7 +56,7 @@ async def persons_search(
 @router.get(
     '/{person_id}',
     response_model=Person,
-    summary='Search person by ID',
+    summary='Search for person by ID',
     description='Returns person details by person uuid'
     )
 async def person_details(
@@ -63,7 +67,7 @@ async def person_details(
     if not person:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
-            detail='person not found'
+            detail='Person is not found'
         )
 
     return Person(**person.dict())
@@ -83,7 +87,7 @@ async def person_films(
     if not films:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
-            detail='person not found'
+            detail='Person are not found'
         )
 
     return films
@@ -107,6 +111,6 @@ async def persons(
     if not results:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
-            detail='persons not found'
+            detail='Persons are not found'
         )
     return results

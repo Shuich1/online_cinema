@@ -1,11 +1,49 @@
 from http import HTTPStatus
-from typing import Union
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from src.models.film import Film
 from src.services.film import FilmService, get_film_service
 
 router = APIRouter()
+
+
+@router.get(
+    '/search',
+    response_model=list[dict],
+    summary='Search for films',
+    description='Returns all films with search query match'
+)
+async def films_search(
+    film_service: FilmService = Depends(get_film_service),
+    query: str = Query(
+        default=None,
+        description='Film search query',
+        alias='query'
+    ),
+    page: Optional[int] = Query(
+        default=1,
+        description='Page number of results',
+        alias='page[number]'
+    ),
+    size: Optional[int] = Query(
+        default=10,
+        description='Limit the number of results',
+        alias='page[size]'
+    )
+) -> list[dict]:
+    if not query:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='Search query is missing'
+        )
+    results = await film_service.search(query, page, size)
+    if not results:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='Films are not found'
+        )
+    return results
 
 
 @router.get(
@@ -16,18 +54,18 @@ router = APIRouter()
 )
 async def films(
     film_service: FilmService = Depends(get_film_service),
-    sort: Union[str, None] = Query(
-        None,
+    sort: Optional[str] = Query(
+        default=None,
         description='Sort by something like imdb_rating',
         alias='sort'
     ),
-    genre: Union[str, None] = Query(
-        None,
+    genre: Optional[str] = Query(
+        default=None,
         description='Filter by genre uuid',
         alias='filter[genre]'
     ),
-    size: Union[int, None] = Query(
-        None,
+    size: Optional[int] = Query(
+        default=10,
         description='Limit the number of results',
         alias='size'
     )

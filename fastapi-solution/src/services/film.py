@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Optional, Union
+from typing import Optional
 
 from aioredis import Redis
 from elasticsearch import AsyncElasticsearch, NotFoundError
@@ -28,9 +28,9 @@ class FilmService:
 
     async def get_all(
         self,
-        sort: Union[str, None],
-        genre: Union[str, None],
-        size: Union[int, None] = 10
+        sort: Optional[str],
+        genre: Optional[str],
+        size: Optional[int]
     ) -> list[Film]:
         try:
             query = {
@@ -66,6 +66,44 @@ class FilmService:
                 size=size,
             )
             return [Film(**hit['_source']) for hit in res['hits']['hits']]
+        except NotFoundError:
+            return []
+
+    async def search(self,
+                     query: str,
+                     page_number: Optional[int],
+                     size: Optional[int]) -> list[Optional[dict]]:
+        body = {
+                'query': {
+                        'multi_match': {
+                                'query': query,
+                                'fields': [f for f in list(Film.__fields__.keys())
+                                           if 'imdb_rating' not in f]
+
+                        }
+                }
+        }
+        try:
+            page = await self.elastic.search(
+                    index='movies',
+                    body=body,
+                    size=size,
+                    scroll='2m'
+            )
+            scroll_id = page['_scroll_id']
+            hits = page['hits']['hits']
+
+            # get data starting from searches second page
+            if page_number > 1:
+                for _ in range(1, page_number):
+                    page = await self.elastic.scroll(scroll_id=scroll_id,
+                                                     scroll='2m')
+                    scroll_id = page['_scroll_id']
+                    hits = page['hits']['hits']
+            results = [Film(**hit['_source']) for hit in hits]
+            return [{'uuid': film.id,
+                     'title': film.title,
+                     'imdb_rating': film.imdb_rating} for film in results]
         except NotFoundError:
             return []
 
