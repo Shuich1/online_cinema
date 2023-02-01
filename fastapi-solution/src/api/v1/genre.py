@@ -19,7 +19,7 @@ async def genres(
     size: Optional[int] = Query(
         default=10,
         description='Limit the number of results',
-        alias='size'
+        alias='page[size]'
     ),
 ) -> list[Genre]:
     genres = await genre_service.get_all(size)
