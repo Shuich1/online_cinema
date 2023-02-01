@@ -5,6 +5,7 @@ import pytest
 from ..testdata.es_data import movies_data
 from ..testdata.response_models import Film
 
+
 @pytest.mark.asyncio
 async def test_get_all_filmworks(make_get_request):
     response = await make_get_request('/films/', params={'sort': 'imdb_rating'})
@@ -15,6 +16,7 @@ async def test_get_all_filmworks(make_get_request):
     assert first_film['imdb_rating'] == 7.5
     assert first_film['title'] == 'The Avengers'
 
+
 @pytest.mark.asyncio
 async def test_get_all_filmworks_descending(make_get_request):
     response = await make_get_request('/films/', params={'sort': '-imdb_rating'})
@@ -24,6 +26,7 @@ async def test_get_all_filmworks_descending(make_get_request):
     assert len(response['json']) == 10
     assert first_film['imdb_rating'] == 9.5
     assert first_film['title'] == 'Gentelmen of Fortune'
+
 
 @pytest.mark.asyncio
 async def test_get_all_filmworks_with_filter(make_get_request):
@@ -37,6 +40,7 @@ async def test_get_all_filmworks_with_filter(make_get_request):
     assert first_film['title'] == 'The Avengers'
     assert last_film['imdb_rating'] == 8.5
     assert last_film['title'] == 'The Star'
+
 
 @pytest.mark.asyncio
 async def test_get_filmwork_by_id(make_get_request):
@@ -60,6 +64,7 @@ async def test_filmworks_pagination(make_get_request):
 
     assert response['status'] == HTTPStatus.OK
     assert len(response['json']) == 5
+
 
 @pytest.mark.asyncio
 async def test_filmworks_cache(redis_client, make_get_request):
