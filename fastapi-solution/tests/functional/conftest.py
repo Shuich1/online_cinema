@@ -22,6 +22,11 @@ def event_loop():
 async def es_client():
     client = AsyncElasticsearch(test_settings.es_url)
     yield client
+
+    await client.indices.delete(index='movies')
+    await client.indices.delete(index='persons')
+    await client.indices.delete(index='genres')
+
     await client.close()
 
 
@@ -33,7 +38,9 @@ async def redis_client():
         maxsize=20
     )
     yield client
+    client.flushall()
     client.close()
+
 
 def get_es_bulk_query(data: list[dict], index: str, id_field: str) -> list[str]:
     query = []
@@ -43,6 +50,7 @@ def get_es_bulk_query(data: list[dict], index: str, id_field: str) -> list[str]:
             json.dumps(item)
         ])
     return query
+
 
 @pytest.fixture(scope="session")
 def es_write_data(es_client):
@@ -60,6 +68,7 @@ def es_write_data(es_client):
             raise Exception('Ошибка записи данных в Elasticsearch')
     return inner
 
+
 @pytest.fixture
 def make_get_request():
     async def inner(url: str, params: dict = None):
@@ -71,13 +80,16 @@ def make_get_request():
                 }
     return inner
 
+
 @pytest.fixture(scope="session", autouse=True)
 async def es_write_films(es_write_data):
     await es_write_data(movies_data, 'movies')
 
+
 @pytest.fixture(scope="session", autouse=True)
 async def es_write_persons(es_write_data):
     await es_write_data(persons_data, 'persons')
+
 
 @pytest.fixture(scope="session", autouse=True)
 async def es_write_genres(es_write_data):
