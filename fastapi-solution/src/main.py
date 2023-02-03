@@ -5,7 +5,7 @@ from fastapi.responses import ORJSONResponse
 
 from .api.v1 import films, genre, person
 from .core.config import settings
-from .db import elastic, redis
+from .db import elastic, cache
 
 app = FastAPI(
     title="Read-only API для онлайн-кинотеатра",
@@ -19,11 +19,14 @@ app = FastAPI(
 
 @app.on_event('startup')
 async def startup():
-    redis.redis = await aioredis.create_redis_pool(
-        (settings.redis_host, settings.redis_port),
-        minsize=10,
-        maxsize=20
+    cache.cache = cache.RedisCache(
+        redis=await aioredis.create_redis_pool(
+            (settings.redis_host, settings.redis_port),
+            minsize=10,
+            maxsize=20
+        )
     )
+
     elastic.es = AsyncElasticsearch(
         hosts=[f'{settings.elastic_host}:{settings.elastic_port}']
     )
@@ -31,8 +34,7 @@ async def startup():
 
 @app.on_event('shutdown')
 async def shutdown():
-    redis.redis.close()
-    await redis.redis.wait_closed()
+    await cache.cache.close()
     await elastic.es.close()
 
 

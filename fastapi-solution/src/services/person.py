@@ -1,20 +1,18 @@
 from functools import lru_cache
 from typing import Optional
 
-from aioredis import Redis
 from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
+
 from src.db.elastic import get_elastic
-from src.db.redis import get_redis
+from src.db.cache import get_cache, Cache
 from src.models.person import Person
 from src.services.film import FilmService
 
-PERSON_CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
-
 
 class PersonService:
-    def __init__(self, redis: Redis, elastic: AsyncElasticsearch):
-        self.redis = redis
+    def __init__(self, cache: Cache, elastic: AsyncElasticsearch):
+        self.cache = cache
         self.elastic = elastic
 
     async def get_by_id(self, person_id: str) -> Optional[Person]:
@@ -28,7 +26,7 @@ class PersonService:
         return person
 
     async def get_films_by_id(self, person_id: str) -> Optional[list[dict]]:
-        films = FilmService(self.redis, self.elastic)
+        films = FilmService(self.cache, self.elastic)
         person = await self._person_from_cache(person_id)
         if not person:
             person = await self._get_person_from_elastic(person_id)
@@ -98,7 +96,7 @@ class PersonService:
         return Person(**doc['_source'])
 
     async def _person_from_cache(self, person_id: str) -> Optional[Person]:
-        data = await self.redis.get(f'person_id_{person_id}')
+        data = await self.cache.get(f'person_id_{person_id}')
         if not data:
             return None
 
@@ -106,16 +104,15 @@ class PersonService:
         return person
 
     async def _put_person_to_cache(self, person: Person):
-        await self.redis.set(
+        await self.cache.set(
                 f'person_id_{person.id}',
-                person.json(),
-                expire=PERSON_CACHE_EXPIRE_IN_SECONDS
+                person.json()
         )
 
 
 @lru_cache()
 def get_person_service(
-        redis: Redis = Depends(get_redis),
+        cache: Cache = Depends(get_cache),
         elastic: AsyncElasticsearch = Depends(get_elastic),
 ) -> PersonService:
-    return PersonService(redis, elastic)
+    return PersonService(cache, elastic)
