@@ -65,7 +65,7 @@ movies_data = [{
         ],
     } for _ in range(15)] + [{
         'id': '1',
-        'imdb_rating': 7.9,
+        'imdb_rating': 7.4,
         'genre': ['Comedy', 'Sci-Fi'],
         'genres': [
             {'id': '333', 'name': 'Comedy'},

@@ -13,6 +13,7 @@ class Film(BaseModel):
     title: str
     description: Optional[str]
     genre: Optional[list[str]]
+    genres: Optional[list[dict[str, str]]]
     imdb_rating: Optional[float]
     director: Optional[list[str]]
     actors: Optional[list[dict[str, str]]]

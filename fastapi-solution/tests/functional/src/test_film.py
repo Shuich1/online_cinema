@@ -1,6 +1,7 @@
 from http import HTTPStatus
 
 import pytest
+from deepdiff import DeepDiff
 
 from ..testdata.es_data import movies_data
 from ..testdata.response_models import Film
@@ -8,78 +9,136 @@ from ..testdata.response_models import Film
 
 @pytest.mark.asyncio
 async def test_get_all_filmworks(make_get_request):
-    response = await make_get_request('/films/', params={'sort': 'imdb_rating'})
+    response = await make_get_request('/films/')
 
-    first_film = response['json'][0]
     assert response['status'] == HTTPStatus.OK
     assert len(response['json']) == 10
-    assert first_film['imdb_rating'] == 7.5
-    assert first_film['title'] == 'The Avengers'
 
 
 @pytest.mark.asyncio
-async def test_get_all_filmworks_descending(make_get_request):
-    response = await make_get_request('/films/', params={'sort': '-imdb_rating'})
+@pytest.mark.parametrize('size, status', [
+    (20, HTTPStatus.OK),
+    (35, HTTPStatus.OK),
+])
+async def test_get_all_filmworks_with_size(make_get_request, size, status):
+    response = await make_get_request('/films/', params={'page[size]': size})
 
-    first_film = response['json'][0]
-    assert response['status'] == HTTPStatus.OK
+    assert response['status'] == status
+    assert len(response['json']) == size
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('sort, first_film, status', [
+    (
+        'imdb_rating',
+        movies_data[-1],
+        HTTPStatus.OK,
+    ),
+    (
+        '-imdb_rating',
+        movies_data[15],
+        HTTPStatus.OK,
+    ),
+])
+async def test_get_all_filmworks_sort(make_get_request, sort, first_film, status):
+    response = await make_get_request('/films/', params={'sort': sort})
+
+    assert response['status'] == status
     assert len(response['json']) == 10
-    assert first_film['imdb_rating'] == 9.5
-    assert first_film['title'] == 'Gentelmen of Fortune'
+    assert not DeepDiff(response['json'][0], first_film)
 
 
 @pytest.mark.asyncio
-async def test_get_all_filmworks_with_filter(make_get_request):
-    response = await make_get_request('/films/', params={'filter[genre]': '111', 'sort': 'imdb_rating', 'page[size]': 50})
+@pytest.mark.parametrize('genre, first_film, status', [
+    (
+        '111',
+        movies_data[0],
+        HTTPStatus.OK,
+    ),
+    (
+        '222',
+        movies_data[0],
+        HTTPStatus.OK,
+    ),
+])
+async def test_filter_by_genre(make_get_request, genre, first_film, status):
+    response = await make_get_request('/films/', params={'filter[genre]': genre})
 
-    first_film = response['json'][0]
-    last_film = response['json'][-1]
-    assert response['status'] == HTTPStatus.OK
-    assert len(response['json']) == 30
-    assert first_film['imdb_rating'] == 7.5
-    assert first_film['title'] == 'The Avengers'
-    assert last_film['imdb_rating'] == 8.5
-    assert last_film['title'] == 'The Star'
-
-
-@pytest.mark.asyncio
-async def test_get_filmwork_by_id(make_get_request):
-    response = await make_get_request('/films/1')
-    original = movies_data[-1]
-
-    assert response['status'] == HTTPStatus.OK
-    assert response['json']['title'] == original['title']
-    assert response['json']['imdb_rating'] == original['imdb_rating']
-    assert response['json']['description'] == original['description']
-    assert response['json']['genre'] == original['genre']
-    assert response['json']['director'] == original['director']
-    assert response['json']['actors_names'] == original['actors_names']
-    assert response['json']['writers_names'] == original['writers_names']
-    assert response['json']['actors'] == original['actors']
-    assert response['json']['writers'] == original['writers']
-
-@pytest.mark.asyncio
-async def test_filmworks_pagination(make_get_request):
-    response = await make_get_request('/films/', params={'page[number]': 2, 'page[size]': 5})
-
-    assert response['status'] == HTTPStatus.OK
-    assert len(response['json']) == 5
+    assert response['status'] == status
+    assert len(response['json']) == 10
+    assert not DeepDiff(response['json'][0], first_film)
 
 
 @pytest.mark.asyncio
-async def test_filmworks_cache(redis_client, make_get_request):
-    response = await make_get_request('/films/1')
-    data = await redis_client.get('film_id_1')
+@pytest.mark.parametrize('film_id, status, details', [
+    (
+        movies_data[0]['id'],
+        HTTPStatus.OK,
+        Film(**movies_data[0]),
+    ),
+    (
+        'a288e9cb-b11a-451f-80cb-111111111',
+        HTTPStatus.NOT_FOUND,
+        None,
+    ),
+])
+async def test_get_filmwork_by_id(make_get_request, film_id, status, details):
+    response = await make_get_request(f'/films/{film_id}')
 
-    assert response['status'] == HTTPStatus.OK
-    assert data is not None
-    data = Film.parse_raw(data)
-    assert data.title == response['json']['title']
-    assert data.imdb_rating == response['json']['imdb_rating']
-    assert data.description == response['json']['description']
-    assert data.genre == response['json']['genre']
-    assert data.director == response['json']['director']
-    assert data.actors_names == response['json']['actors_names']
-    assert data.writers_names == response['json']['writers_names']
-    assert data.actors == response['json']['actors']
-    assert data.writers == response['json']['writers']
+    assert response['status'] == status
+    if details:
+        assert not DeepDiff(response['json'], details.dict())
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('page, status', [
+    (1, HTTPStatus.OK),
+    (2, HTTPStatus.OK),
+    (3, HTTPStatus.OK),
+])
+async def test_get_all_filmworks_with_page(make_get_request, page, status):
+    response = await make_get_request('/films/', params={'page[number]': page})
+
+    assert response['status'] == status
+    assert len(response['json']) == 10
+    assert response['json'][0]['id'] == movies_data[10 * (page - 1)]['id']
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('query, first_film, status', [
+    ('Star', movies_data[0], HTTPStatus.OK),
+    ('end', movies_data[-1], HTTPStatus.OK),
+    ('qwerty', None, HTTPStatus.NOT_FOUND),
+])
+async def test_search_filmwork(make_get_request, query, first_film, status):
+    response = await make_get_request('/films/search', params={'query': query})
+
+    assert response['status'] == status
+    print(response['json'])
+    print(first_film)
+
+    if first_film:
+        assert not DeepDiff(response['json'][0], first_film)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('film_id, status, details', [
+    (
+        movies_data[0]['id'],
+        HTTPStatus.OK,
+        Film(**movies_data[0]),
+    ),
+    (
+        'a288e9cb-b11a-451f-80cb-111111111',
+        HTTPStatus.NOT_FOUND,
+        None,
+    ),
+])
+async def test_get_filmwork_by_id_with_cache(redis_client, make_get_request, film_id, status, details):
+    response = await make_get_request(f'/films/{film_id}')
+    redis_data = await redis_client.get(f'film_id:{film_id}')
+
+    assert response['status'] == status
+    if details:
+        assert redis_data is not None
+        assert not DeepDiff(response['json'], Film.parse_raw(redis_data).dict())

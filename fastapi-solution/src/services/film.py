@@ -30,49 +30,67 @@ class FilmService:
         self,
         sort: Optional[str],
         genre: Optional[str],
+        page_number: Optional[int],
         size: Optional[int]
     ) -> list[Film]:
-        try:
-            query = {
-                'match_all': {}
-            }
 
-            if genre:
-                query = {
-                    'nested': {
-                        'path': 'genres',
-                        'query': {
-                            'bool': {
-                                'must': [
-                                    {
-                                        'match': {
-                                            'genres.id': genre
-                                        }
+        query = {
+            'match_all': {}
+        }
+
+        if genre:
+            query = {
+                'nested': {
+                    'path': 'genres',
+                    'query': {
+                        'bool': {
+                            'must': [
+                                {
+                                    'match': {
+                                        'genres.id': genre
                                     }
-                                ]
-                            }
+                                }
+                            ]
                         }
                     }
                 }
+            }
 
-            sort = sort[1:] + ':desc' if sort and sort.startswith('-') else sort
-
-            res = await self.elastic.search(
+        sort = sort[1:] + ':desc' if sort and sort.startswith('-') else sort
+        try:
+            page = await self.elastic.search(
                 index='movies',
                 body={
                     'query': query,
                 },
                 sort=sort,
                 size=size,
+                scroll='2m'
             )
-            return [Film(**hit['_source']) for hit in res['hits']['hits']]
         except NotFoundError:
             return []
 
-    async def search(self,
-                     query: str,
-                     page_number: Optional[int],
-                     size: Optional[int]) -> list[Optional[dict]]:
+        scroll_id = page['_scroll_id']
+        hits = page['hits']['hits']
+
+        if page_number > 1:
+            for _ in range(1, page_number):
+                page = await self.elastic.scroll(
+                    scroll_id=scroll_id,
+                    scroll='2m'
+                )
+                scroll_id = page['_scroll_id']
+                hits = page['hits']['hits']
+
+        return [Film(**hit['_source']) for hit in hits]
+
+    async def search(
+        self,
+        query: str,
+        page_number: Optional[int],
+        size: Optional[int]
+    ) -> list[Optional[dict]]:
+
         body = {
                 'query': {
                         'multi_match': {
@@ -90,22 +108,20 @@ class FilmService:
                     size=size,
                     scroll='2m'
             )
-            scroll_id = page['_scroll_id']
-            hits = page['hits']['hits']
-
-            # get data starting from searches second page
-            if page_number > 1:
-                for _ in range(1, page_number):
-                    page = await self.elastic.scroll(scroll_id=scroll_id,
-                                                     scroll='2m')
-                    scroll_id = page['_scroll_id']
-                    hits = page['hits']['hits']
-            results = [Film(**hit['_source']) for hit in hits]
-            return [{'uuid': film.id,
-                     'title': film.title,
-                     'imdb_rating': film.imdb_rating} for film in results]
         except NotFoundError:
             return []
+
+        scroll_id = page['_scroll_id']
+        hits = page['hits']['hits']
+
+        if page_number > 1:
+            for _ in range(1, page_number):
+                page = await self.elastic.scroll(scroll_id=scroll_id,
+                                                    scroll='2m')
+                scroll_id = page['_scroll_id']
+                hits = page['hits']['hits']
+
+        return [Film(**hit['_source']) for hit in hits]
 
     async def _get_film_from_elastic(self, film_id: str) -> Optional[Film]:
         try:
@@ -115,7 +131,7 @@ class FilmService:
         return Film(**doc['_source'])
 
     async def _film_from_cache(self, film_id: str) -> Optional[Film]:
-        data = await self.redis.get(f'film_id_{film_id}')
+        data = await self.redis.get(f'film_id:{film_id}')
         if not data:
             return None
 
@@ -124,7 +140,7 @@ class FilmService:
 
     async def _put_film_to_cache(self, film: Film):
         await self.redis.set(
-            f'film_id_{film.id}',
+            f'film_id:{film.id}',
             film.json(),
             expire=FILM_CACHE_EXPIRE_IN_SECONDS
         )
