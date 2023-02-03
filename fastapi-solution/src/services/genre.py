@@ -47,8 +47,7 @@ class GenreService:
                 scroll_id = page['_scroll_id']
                 hits = page['hits']['hits']
 
-        results = [Genre(**hit['_source']) for hit in hits]
-        return results
+        return [Genre(**hit['_source']) for hit in hits]
 
     async def _get_genre_from_elastic(self, genre_id: str) -> Optional[Genre]:
         try:

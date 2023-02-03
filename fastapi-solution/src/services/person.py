@@ -54,22 +54,21 @@ class PersonService:
                     size=size,
                     scroll='2m'
             )
-
-            scroll_id = page['_scroll_id']
-            hits = page['hits']['hits']
-
-            if page_number > 1:
-                for _ in range(1, page_number):
-                    page = await self.elastic.scroll(scroll_id=scroll_id,
-                                                     scroll='2m')
-                    scroll_id = page['_scroll_id']
-                    hits = page['hits']['hits']
-                
-            result = [Person(**hit['_source']) for hit in hits]
-
-            return result
         except NotFoundError:
             return []
+
+        scroll_id = page['_scroll_id']
+        hits = page['hits']['hits']
+
+        if page_number > 1:
+            for _ in range(1, page_number):
+                page = await self.elastic.scroll(scroll_id=scroll_id,
+                                                    scroll='2m')
+                scroll_id = page['_scroll_id']
+                hits = page['hits']['hits']
+
+        return [Person(**hit['_source']) for hit in hits]
+
 
     async def search(self,
                      query: str,
@@ -90,18 +89,20 @@ class PersonService:
                     size=size,
                     scroll='2m'
             )
-            scroll_id = page['_scroll_id']
-            hits = page['hits']['hits']
-
-            if page_number > 1:
-                for _ in range(1, page_number):
-                    page = await self.elastic.scroll(scroll_id=scroll_id,
-                                                     scroll='2m')
-                    scroll_id = page['_scroll_id']
-                    hits = page['hits']['hits']
-            return [Person(**hit['_source']) for hit in hits]
         except NotFoundError:
             return []
+
+        scroll_id = page['_scroll_id']
+        hits = page['hits']['hits']
+
+        if page_number > 1:
+            for _ in range(1, page_number):
+                page = await self.elastic.scroll(scroll_id=scroll_id,
+                                                    scroll='2m')
+                scroll_id = page['_scroll_id']
+                hits = page['hits']['hits']
+        return [Person(**hit['_source']) for hit in hits]
+
 
     async def _get_person_from_elastic(
             self,
