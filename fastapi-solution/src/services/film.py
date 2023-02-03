@@ -57,16 +57,18 @@ class FilmService:
             }
 
         sort = sort[1:] + ':desc' if sort and sort.startswith('-') else sort
-
-        page = await self.elastic.search(
-            index='movies',
-            body={
-                'query': query,
-            },
-            sort=sort,
-            size=size,
-            scroll='2m'
-        )
+        try:
+            page = await self.elastic.search(
+                index='movies',
+                body={
+                    'query': query,
+                },
+                sort=sort,
+                size=size,
+                scroll='2m'
+            )
+        except NotFoundError:
+            return []
 
         scroll_id = page['_scroll_id']
         hits = page['hits']['hits']
@@ -80,8 +82,7 @@ class FilmService:
                 scroll_id = page['_scroll_id']
                 hits = page['hits']['hits']
 
-        results = [Film(**hit['_source']) for hit in hits]
-        return results
+        return [Film(**hit['_source']) for hit in hits]
 
     async def search(
         self,
@@ -100,13 +101,16 @@ class FilmService:
                         }
                 }
         }
+        try:
+            page = await self.elastic.search(
+                    index='movies',
+                    body=body,
+                    size=size,
+                    scroll='2m'
+            )
+        except NotFoundError:
+            return []
 
-        page = await self.elastic.search(
-                index='movies',
-                body=body,
-                size=size,
-                scroll='2m'
-        )
         scroll_id = page['_scroll_id']
         hits = page['hits']['hits']
 
@@ -116,8 +120,8 @@ class FilmService:
                                                     scroll='2m')
                 scroll_id = page['_scroll_id']
                 hits = page['hits']['hits']
-        results = [Film(**hit['_source']) for hit in hits]
-        return results
+
+        return [Film(**hit['_source']) for hit in hits]
 
     async def _get_film_from_elastic(self, film_id: str) -> Optional[Film]:
         try:
