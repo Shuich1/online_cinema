@@ -105,6 +105,23 @@ async def test_get_all_filmworks_with_page(make_get_request, page, status):
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize('query, first_film, status', [
+    ('Star', movies_data[0], HTTPStatus.OK),
+    ('end', movies_data[-1], HTTPStatus.OK),
+    ('qwerty', None, HTTPStatus.NOT_FOUND),
+])
+async def test_search_filmwork(make_get_request, query, first_film, status):
+    response = await make_get_request('/films/search', params={'query': query})
+
+    assert response['status'] == status
+    print(response['json'])
+    print(first_film)
+
+    if first_film:
+        assert not DeepDiff(response['json'][0], first_film)
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize('film_id, status, details', [
     (
         movies_data[0]['id'],
