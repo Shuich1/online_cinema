@@ -64,17 +64,23 @@ async def films(
         description='Filter by genre uuid',
         alias='filter[genre]'
     ),
+    page: Optional[int] = Query(
+        default=1,
+        description='Page number of results',
+        alias='page[number]'
+    ),
     size: Optional[int] = Query(
         default=10,
         description='Limit the number of results',
         alias='page[size]'
-    )
+    ),
+
 ) -> list[Film]:
-    films = await film_service.get_all(sort, genre, size)
+    films = await film_service.get_all(sort, genre, page, size)
     if not films:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
-            detail='films not found'
+            detail='Films are not found'
         )
     return films
 
@@ -83,7 +89,7 @@ async def films(
     '/{film_id}',
     response_model=Film,
     summary='Film details',
-    description='Returns film details by film uuid'
+    description='Get film details by film uuid'
     )
 async def film_details(
     film_id: str,
@@ -93,7 +99,7 @@ async def film_details(
     if not film:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
-            detail='film not found'
+            detail='Film is not found'
         )
 
     return Film(**film.dict())
