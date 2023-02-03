@@ -27,13 +27,28 @@ class GenreService:
 
         return genre
 
-    async def get_all(self, size: Optional[int]) -> Optional[list[Genre]]:
-        docs = await self.elastic.search(
+    async def get_all(self, page_number, size: Optional[int]) -> Optional[list[Genre]]:
+        page = await self.elastic.search(
             index='genres',
             body={'query': {'match_all': {}}},
-            size=size
+            size=size,
+            scroll='2m',
         )
-        return [Genre(**doc['_source']) for doc in docs['hits']['hits']]
+
+        scroll_id = page['_scroll_id']
+        hits = page['hits']['hits']
+
+        if page_number > 1:
+            for i in range(page_number - 1):
+                page = await self.elastic.scroll(
+                    scroll_id=scroll_id,
+                    scroll='2m'
+                )
+                scroll_id = page['_scroll_id']
+                hits = page['hits']['hits']
+
+        results = [Genre(**hit['_source']) for hit in hits]
+        return results
 
     async def _get_genre_from_elastic(self, genre_id: str) -> Optional[Genre]:
         try:

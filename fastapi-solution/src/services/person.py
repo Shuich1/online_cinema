@@ -42,15 +42,32 @@ class PersonService:
                  'title': info.title,
                  'imdb_rating': info.imdb_rating} for info in films_info]
 
-    async def get_all(self,
-                      size: Optional[int]) -> list[Optional[Person]]:
+    async def get_all(
+        self,
+        page_number: Optional[int],
+        size: Optional[int]
+    ) -> list[Optional[Person]]:
         try:
-            res = await self.elastic.search(
+            page = await self.elastic.search(
                     index='persons',
                     body={'query': {'match_all': {}}},
-                    size=size
+                    size=size,
+                    scroll='2m'
             )
-            return [Person(**hit['_source']) for hit in res['hits']['hits']]
+
+            scroll_id = page['_scroll_id']
+            hits = page['hits']['hits']
+
+            if page_number > 1:
+                for _ in range(1, page_number):
+                    page = await self.elastic.scroll(scroll_id=scroll_id,
+                                                     scroll='2m')
+                    scroll_id = page['_scroll_id']
+                    hits = page['hits']['hits']
+                
+            result = [Person(**hit['_source']) for hit in hits]
+
+            return result
         except NotFoundError:
             return []
 
@@ -76,7 +93,6 @@ class PersonService:
             scroll_id = page['_scroll_id']
             hits = page['hits']['hits']
 
-            # get data starting from searches second page
             if page_number > 1:
                 for _ in range(1, page_number):
                     page = await self.elastic.scroll(scroll_id=scroll_id,

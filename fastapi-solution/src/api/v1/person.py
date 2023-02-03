@@ -2,17 +2,10 @@ from http import HTTPStatus
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
+from src.models.person import Person
 from src.services.person import PersonService, get_person_service
 
 router = APIRouter()
-
-
-class Person(BaseModel):
-    id: str
-    full_name: str
-    roles: Optional[list[str]]
-    film_ids: Optional[list[str]]
 
 
 @router.get(
@@ -56,8 +49,8 @@ async def persons_search(
 @router.get(
     '/{person_id}',
     response_model=Person,
-    summary='Search for person by ID',
-    description='Returns person details by person uuid'
+    summary='Person details',
+    description='Get person details by person uuid'
     )
 async def person_details(
     person_id: str,
@@ -77,7 +70,7 @@ async def person_details(
     '/{person_id}/film',
     response_model=list[dict],
     summary='Person film info',
-    description='Returns person films details by person uuid'
+    description='Get person films details by person uuid'
     )
 async def person_films(
     person_id: str,
@@ -87,7 +80,7 @@ async def person_films(
     if not films:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
-            detail='Person are not found'
+            detail='Person is not found'
         )
 
     return films
@@ -101,13 +94,18 @@ async def person_films(
 )
 async def persons(
     person_service: PersonService = Depends(get_person_service),
+    page: Optional[int] = Query(
+        default=1,
+        description='Page number of results',
+        alias='page[number]'
+    ),
     size: Optional[int] = Query(
         default=10,
         description='Limit the number of results',
         alias='size'
     )
 ) -> list[Person]:
-    results = await person_service.get_all(size)
+    results = await person_service.get_all(page, size)
     if not results:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
