@@ -20,7 +20,7 @@ class DataStorage(ABC):
 
 class ElasticStorage(DataStorage):
     def __init__(self, elastic: AsyncElasticsearch):
-        self.elastic = elastic
+        self.elastic = AsyncElasticsearch(hosts=elastic)
 
     async def get(self, *args, **kwargs):
         return await self.elastic.get(*args, **kwargs)

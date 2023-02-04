@@ -1,135 +1,86 @@
 from functools import lru_cache
 from typing import Optional
 
-from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
 
-from src.db.elastic import get_elastic
 from src.db.cache import get_cache, Cache
+from src.db.data_storage import get_data_storage, DataStorage
 from src.models.person import Person
+from src.services.service import BaseService
 from src.services.film import FilmService
 
 
-class PersonService:
-    def __init__(self, cache: Cache, elastic: AsyncElasticsearch):
-        self.cache = cache
-        self.elastic = elastic
+class PersonService(BaseService):
+    def __init__(self, cache: Cache, data_storage: DataStorage):
+        super().__init__(cache, data_storage)
 
-    async def get_by_id(self, person_id: str) -> Optional[Person]:
-        person = await self._person_from_cache(person_id)
-        if not person:
-            person = await self._get_person_from_elastic(person_id)
-            if not person:
-                return None
-            await self._put_person_to_cache(person)
-
-        return person
-
-    async def get_films_by_id(self, person_id: str) -> Optional[list[dict]]:
-        films = FilmService(self.cache, self.elastic)
-        person = await self._person_from_cache(person_id)
-        if not person:
-            person = await self._get_person_from_elastic(person_id)
-            if not person:
-                return None
-            await self._put_person_to_cache(person)
-
-        films_info = [await films.get_by_id(film_id)
-                      for film_id in person.film_ids]
-        return [{'uuid': info.id,
-                 'title': info.title,
-                 'imdb_rating': info.imdb_rating} for info in films_info]
-
-    async def get_all(
-        self,
-        page_number: Optional[int],
-        size: Optional[int]
-    ) -> list[Optional[Person]]:
-        try:
-            page = await self.elastic.search(
-                    index='persons',
-                    body={'query': {'match_all': {}}},
-                    size=size,
-                    scroll='2m'
-            )
-        except NotFoundError:
-            return []
-
-        scroll_id = page['_scroll_id']
-        hits = page['hits']['hits']
-
-        if page_number > 1:
-            for _ in range(1, page_number):
-                page = await self.elastic.scroll(scroll_id=scroll_id,
-                                                    scroll='2m')
-                scroll_id = page['_scroll_id']
-                hits = page['hits']['hits']
-
-        return [Person(**hit['_source']) for hit in hits]
-
+    async def get_all(self,
+                      page_number: Optional[int],
+                      size: Optional[int]
+                      ) -> Optional[list[Person]]:
+        body = {
+                'query': {
+                        'match_all': {}
+                },
+        }
+        return await self._search(index='persons',
+                                  body=body,
+                                  page_number=page_number,
+                                  size=size,
+                                  model=Person)
 
     async def search(self,
                      query: str,
                      page_number: Optional[int],
-                     size: Optional[int]) -> list[Optional[Person]]:
+                     size: Optional[int],
+                     ) -> list[Optional[dict]]:
+        fields = [k for k, v in Person.__fields__.items() if v.type_ == str]
+
         body = {
                 'query': {
                         'multi_match': {
                                 'query': query,
-                                'fields': list(Person.__fields__.keys())
+                                'fields': fields
                         }
                 }
         }
-        try:
-            page = await self.elastic.search(
-                    index='persons',
-                    body=body,
-                    size=size,
-                    scroll='2m'
-            )
-        except NotFoundError:
-            return []
+        return await self._search(index='persons',
+                                  body=body,
+                                  page_number=page_number,
+                                  size=size,
+                                  model=Person)
 
-        scroll_id = page['_scroll_id']
-        hits = page['hits']['hits']
-
-        if page_number > 1:
-            for _ in range(1, page_number):
-                page = await self.elastic.scroll(scroll_id=scroll_id,
-                                                    scroll='2m')
-                scroll_id = page['_scroll_id']
-                hits = page['hits']['hits']
-        return [Person(**hit['_source']) for hit in hits]
-
-
-    async def _get_person_from_elastic(
-            self,
-            person_id: str
-    ) -> Optional[Person]:
-        try:
-            doc = await self.elastic.get('persons', person_id)
-        except NotFoundError:
-            return None
-        return Person(**doc['_source'])
-
-    async def _person_from_cache(self, person_id: str) -> Optional[Person]:
-        data = await self.cache.get(f'person_id_{person_id}')
+    async def get_by_id(self, uuid: str) -> Optional[Person]:
+        data = await self._get_data_from_cache(name_id='person_id',
+                                               uuid=uuid,
+                                               model=Person)
         if not data:
-            return None
+            data = await self._get_data_from_storage(index='persons',
+                                                     uuid=uuid,
+                                                     model=Person)
+            if not data:
+                return None
+            await self._put_data_to_cache(name_id='person_id',
+                                          data=data)
 
-        person = Person.parse_raw(data)
-        return person
+        return data
 
-    async def _put_person_to_cache(self, person: Person):
-        await self.cache.set(
-                f'person_id_{person.id}',
-                person.json()
-        )
+    async def get_films_by_id(self, person_id: str) -> Optional[list[dict]]:
+        films = FilmService(self.cache, self.data_storage)
+        person = await self.get_by_id(person_id)
+        if person:
+            films_info = [await films.get_by_id(film_id)
+                          for film_id in person.film_ids]
+            return [{'uuid': info.id,
+                     'title': info.title,
+                     'imdb_rating': info.imdb_rating} for info in films_info]
+        else:
+            return []
 
 
 @lru_cache()
 def get_person_service(
         cache: Cache = Depends(get_cache),
-        elastic: AsyncElasticsearch = Depends(get_elastic),
+        data_storage: DataStorage = Depends(get_data_storage),
 ) -> PersonService:
-    return PersonService(cache, elastic)
+    return PersonService(cache, data_storage)

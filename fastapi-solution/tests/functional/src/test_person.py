@@ -92,7 +92,7 @@ async def test_get_existing_person_details(make_get_request, person_id, status, 
 ])
 async def test_get_person_details_from_cache(redis_client, make_get_request, person_id, status):
     response = await make_get_request(f'/persons/{person_id}/')
-    redis_data = await redis_client.get(f'person_id_{person_id}')
+    redis_data = await redis_client.get(f'person_id:{person_id}')
 
     assert response['status'] == status
     assert redis_data is not None
