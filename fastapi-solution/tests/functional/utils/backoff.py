@@ -7,6 +7,15 @@ from utils.logger import get_logger
 logger = get_logger(__name__)
 
 def backoff(start_time, stop_time, factor):
+    """
+    Decorator to retry a function if it fails, working with both sync and async functions
+    Args:
+        start_time: time to sleep before retrying
+        stop_time: maximum time to sleep before retrying
+        factor: factor to increase sleep time by
+    Returns:
+        wrapper: wrapper function
+    """
     def wrapper(func):
         if not asyncio.iscoroutinefunction(func):
             @wraps(func)
