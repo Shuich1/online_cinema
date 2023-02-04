@@ -11,7 +11,10 @@ def make_get_request():
     """
     async def inner(url: str, params: dict = None):
         async with aiohttp.ClientSession() as session:
-            async with session.get(test_settings.service_url + '/api/v1' + url, params=params) as response:
+            async with session.get(
+                test_settings.service_url + '/api/v1' + url,
+                params=params
+            ) as response:
                 return {
                     'status': response.status,
                     'json': await response.json()

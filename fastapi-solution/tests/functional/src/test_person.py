@@ -30,7 +30,12 @@ async def test_get_all_persons(make_get_request):
         45,
     ),
 ])
-async def test_get_all_persons_with_size(make_get_request, params, status, count):
+async def test_get_all_persons_with_size(
+    make_get_request,
+    params,
+    status,
+    count
+):
     response = await make_get_request('/persons/', params=params)
 
     assert response['status'] == status
@@ -71,7 +76,12 @@ async def test_get_films_person(make_get_request, person_id, status):
         persons_data[15]
     ),
 ])
-async def test_get_existing_person_details(make_get_request, person_id, status, details):
+async def test_get_existing_person_details(
+    make_get_request,
+    person_id,
+    status,
+    details
+):
     response = await make_get_request(f'/persons/{person_id}/')
 
     assert response['status'] == status
@@ -89,13 +99,22 @@ async def test_get_existing_person_details(make_get_request, person_id, status, 
         HTTPStatus.OK,
     ),
 ])
-async def test_get_person_details_from_cache(redis_client, make_get_request, person_id, status):
+async def test_get_person_details_from_cache(
+    redis_client,
+    make_get_request,
+    person_id,
+    status
+):
     response = await make_get_request(f'/persons/{person_id}/')
     redis_data = await redis_client.get(f'person_id:{person_id}')
 
     assert response['status'] == status
     assert redis_data is not None
-    assert not DeepDiff(json.loads(redis_data), response['json'], ignore_order=True)
+    assert not DeepDiff(
+        json.loads(redis_data),
+        response['json'],
+        ignore_order=True
+    )
 
 
 @pytest.mark.asyncio
@@ -125,7 +144,7 @@ async def test_get_missing_person_details(make_get_request, person_id, status):
     ),
 ])
 async def test_search_persons(make_get_request, params, status, count):
-    response = await make_get_request(f'/persons/search/', params=params)
+    response = await make_get_request('/persons/search/', params=params)
 
     assert response['status'] == status
     assert len(response['json']) == count

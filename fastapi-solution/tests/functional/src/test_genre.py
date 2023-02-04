@@ -51,7 +51,12 @@ async def test_get_one_genre(make_get_request, genre_id, status, details):
         HTTPStatus.OK,
     ),
 ])
-async def test_get_one_genre_from_cache(redis_client, make_get_request, genre_id, status):
+async def test_get_one_genre_from_cache(
+    redis_client,
+    make_get_request,
+    genre_id,
+    status
+):
     response = await make_get_request(f'/genres/{genre_id}')
     redis_data = await redis_client.get(f'genre_id:{genre_id}')
 

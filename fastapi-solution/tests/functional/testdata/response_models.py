@@ -7,10 +7,12 @@ from pydantic import BaseModel
 def orjson_dumps(v, *, default):
     return orjson.dumps(v, default=default).decode()
 
+
 class BaseOrjsonModel(BaseModel):
     class Config:
         json_loads = orjson.loads
         json_dumps = orjson_dumps
+
 
 class Film(BaseOrjsonModel):
     id: str
@@ -25,9 +27,11 @@ class Film(BaseOrjsonModel):
     actors_names: Optional[list[str]]
     writers_names: Optional[list[str]]
 
+
 class Genre(BaseOrjsonModel):
     id: str
     name: str
+
 
 class Person(BaseOrjsonModel):
     id: str

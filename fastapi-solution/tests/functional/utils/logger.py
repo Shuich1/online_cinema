@@ -64,6 +64,7 @@ LOGGING = {
 
 logging_config.dictConfig(LOGGING)
 
+
 def get_logger(name: str) -> logging.Logger:
     """
     Функция для получения логгера

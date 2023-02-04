@@ -8,6 +8,7 @@ pytest_plugins = [
     'functional.fixtures.fastapi',
 ]
 
+
 @pytest.fixture(scope="session")
 def event_loop():
     policy = asyncio.get_event_loop_policy()

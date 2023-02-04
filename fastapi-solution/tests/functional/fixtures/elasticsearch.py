@@ -22,7 +22,11 @@ async def es_client():
     await client.close()
 
 
-def get_es_bulk_query(data: list[dict], index: str, id_field: str) -> list[str]:
+def get_es_bulk_query(
+    data: list[dict],
+    index: str,
+    id_field: str
+) -> list[str]:
     """
     Create bulk query for ElasticSearch
     """
@@ -42,7 +46,10 @@ def es_write_data(es_client):
     """
     async def inner(data, index):
         if not await es_client.indices.exists(index):
-            index_dict = dict(test_settings.es_index_mappings[index], **test_settings.es_index_settings)
+            index_dict = dict(
+                test_settings.es_index_mappings[index],
+                **test_settings.es_index_settings
+            )
             await es_client.indices.create(index, body=index_dict)
 
         bulk_query = get_es_bulk_query(data, index, test_settings.es_id_field)
@@ -53,6 +60,7 @@ def es_write_data(es_client):
         if response['errors']:
             raise Exception('Ошибка записи данных в Elasticsearch')
     return inner
+
 
 @pytest.fixture(scope="session", autouse=True)
 async def es_write_films(es_write_data):
