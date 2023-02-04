@@ -5,14 +5,14 @@ from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
 
 from src.db.cache import get_cache, Cache
-from src.db.elastic import get_elastic
+from src.db.data_storage import get_data_storage, DataStorage
 from src.models.film import Film
 
 
 class FilmService:
-    def __init__(self, cache: Cache, elastic: AsyncElasticsearch):
+    def __init__(self, cache: Cache, data_storage: DataStorage):
         self.cache = cache
-        self.elastic = elastic
+        self.data_storage = data_storage
 
     async def get_by_id(self, film_id: str) -> Optional[Film]:
         film = await self._film_from_cache(film_id)
@@ -56,7 +56,7 @@ class FilmService:
 
         sort = sort[1:] + ':desc' if sort and sort.startswith('-') else sort
         try:
-            page = await self.elastic.search(
+            page = await self.data_storage.search(
                 index='movies',
                 body={
                     'query': query,
@@ -73,7 +73,7 @@ class FilmService:
 
         if page_number > 1:
             for _ in range(1, page_number):
-                page = await self.elastic.scroll(
+                page = await self.data_storage.scroll(
                     scroll_id=scroll_id,
                     scroll='2m'
                 )
@@ -100,7 +100,7 @@ class FilmService:
                 }
         }
         try:
-            page = await self.elastic.search(
+            page = await self.data_storage.search(
                     index='movies',
                     body=body,
                     size=size,
@@ -114,7 +114,7 @@ class FilmService:
 
         if page_number > 1:
             for _ in range(1, page_number):
-                page = await self.elastic.scroll(scroll_id=scroll_id,
+                page = await self.data_storage.scroll(scroll_id=scroll_id,
                                                     scroll='2m')
                 scroll_id = page['_scroll_id']
                 hits = page['hits']['hits']
@@ -123,13 +123,13 @@ class FilmService:
 
     async def _get_film_from_elastic(self, film_id: str) -> Optional[Film]:
         try:
-            doc = await self.elastic.get('movies', film_id)
+            doc = await self.data_storage.get('movies', film_id)
         except NotFoundError:
             return None
         return Film(**doc['_source'])
 
     async def _film_from_cache(self, film_id: str) -> Optional[Film]:
-        data = await self.redis.get(f'film_id:{film_id}')
+        data = await self.cache.get(f'film_id:{film_id}')
         if not data:
             return None
 
@@ -137,7 +137,7 @@ class FilmService:
         return film
 
     async def _put_film_to_cache(self, film: Film):
-        await self.redis.set(
+        await self.cache.set(
             f'film_id:{film.id}',
             film.json(),
         )
@@ -146,6 +146,6 @@ class FilmService:
 @lru_cache()
 def get_film_service(
         cache: Cache = Depends(get_cache),
-        elastic: AsyncElasticsearch = Depends(get_elastic),
+        elastic: AsyncElasticsearch = Depends(get_data_storage),
 ) -> FilmService:
     return FilmService(cache, elastic)

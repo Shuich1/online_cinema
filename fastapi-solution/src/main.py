@@ -5,7 +5,7 @@ from fastapi.responses import ORJSONResponse
 
 from .api.v1 import films, genre, person
 from .core.config import settings
-from .db import elastic, cache
+from .db import data_storage, cache
 
 app = FastAPI(
     title="Read-only API для онлайн-кинотеатра",
@@ -27,15 +27,15 @@ async def startup():
         )
     )
 
-    elastic.es = AsyncElasticsearch(
-        hosts=[f'{settings.elastic_host}:{settings.elastic_port}']
+    data_storage.data_storage = data_storage.ElasticStorage(
+        elastic=[f'{settings.elastic_host}:{settings.elastic_port}']
     )
 
 
 @app.on_event('shutdown')
 async def shutdown():
     await cache.cache.close()
-    await elastic.es.close()
+    await data_storage.data_storage.close()
 
 
 app.include_router(films.router, prefix='/api/v1/films', tags=['films'])
