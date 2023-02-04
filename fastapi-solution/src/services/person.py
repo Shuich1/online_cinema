@@ -74,8 +74,7 @@ class PersonService(BaseService):
             return [{'uuid': info.id,
                      'title': info.title,
                      'imdb_rating': info.imdb_rating} for info in films_info]
-        else:
-            return []
+        return []
 
 
 @lru_cache()
