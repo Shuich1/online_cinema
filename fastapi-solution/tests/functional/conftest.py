@@ -1,6 +1,6 @@
 import asyncio
-import pytest
 
+import pytest
 
 pytest_plugins = [
     'functional.fixtures.elasticsearch',

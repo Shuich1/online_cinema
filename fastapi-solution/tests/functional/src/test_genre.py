@@ -4,7 +4,7 @@ from http import HTTPStatus
 import pytest
 from deepdiff import DeepDiff
 
-from ..testdata.es_data import genres_data, default_size
+from ..testdata.es_data import default_size, genres_data
 
 
 @pytest.mark.asyncio

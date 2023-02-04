@@ -3,7 +3,7 @@ from http import HTTPStatus
 import pytest
 from deepdiff import DeepDiff
 
-from ..testdata.es_data import movies_data, default_size
+from ..testdata.es_data import default_size, movies_data
 from ..testdata.response_models import Film
 
 

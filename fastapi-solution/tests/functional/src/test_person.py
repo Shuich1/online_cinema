@@ -4,8 +4,7 @@ from http import HTTPStatus
 import pytest
 from deepdiff import DeepDiff
 
-from ..testdata.es_data import persons_data, default_size
-
+from ..testdata.es_data import default_size, persons_data
 
 DUMMY_PERSON_ID = 'a288e9cb-b11a-451f-80cb-111111111'
 
