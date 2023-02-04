@@ -4,7 +4,7 @@ from http import HTTPStatus
 import pytest
 from deepdiff import DeepDiff
 
-from ..testdata.es_data import genres_data
+from ..testdata.es_data import genres_data, default_size
 
 
 @pytest.mark.asyncio
@@ -12,7 +12,7 @@ async def test_get_all_genres(make_get_request):
     response = await make_get_request('/genres/')
 
     assert response['status'] == HTTPStatus.OK
-    assert len(response['json']) == 10
+    assert len(response['json']) == default_size
 
 
 @pytest.mark.asyncio

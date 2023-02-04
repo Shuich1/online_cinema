@@ -4,7 +4,7 @@ from http import HTTPStatus
 import pytest
 from deepdiff import DeepDiff
 
-from ..testdata.es_data import persons_data
+from ..testdata.es_data import persons_data, default_size
 
 
 DUMMY_PERSON_ID = 'a288e9cb-b11a-451f-80cb-111111111'
@@ -15,7 +15,7 @@ async def test_get_all_persons(make_get_request):
     response = await make_get_request('/persons/')
 
     assert response['status'] == HTTPStatus.OK
-    assert len(response['json']) == 10
+    assert len(response['json']) == default_size
 
 
 @pytest.mark.asyncio

@@ -117,3 +117,5 @@ genres_data = [{
     'id': str(uuid.uuid4()),
     'name': 'Drama',
 } for _ in range(15)]
+
+default_size = 10
