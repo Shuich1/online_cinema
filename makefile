@@ -13,3 +13,4 @@ createsuperuser:
 	docker-compose exec django python manage.py createsuperuser
 tests:
 	docker-compose -f fastapi-solution/tests/functional/docker-compose.yml up --build --abort-on-container-exit
+	docker-compose -f fastapi-solution/tests/functional/docker-compose.yml down
