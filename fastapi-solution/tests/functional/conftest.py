@@ -3,9 +3,9 @@ import asyncio
 import pytest
 
 pytest_plugins = [
-    'functional.fixtures.elasticsearch',
-    'functional.fixtures.redis',
-    'functional.fixtures.fastapi',
+    'fixtures.elasticsearch',
+    'fixtures.redis',
+    'fixtures.fastapi',
 ]
 
 
