@@ -4,7 +4,7 @@ from http import HTTPStatus
 import pytest
 from deepdiff import DeepDiff
 
-from ..testdata.es_data import genres_data
+from ..testdata.es_data import default_size, genres_data
 
 
 @pytest.mark.asyncio
@@ -12,7 +12,7 @@ async def test_get_all_genres(make_get_request):
     response = await make_get_request('/genres/')
 
     assert response['status'] == HTTPStatus.OK
-    assert len(response['json']) == 10
+    assert len(response['json']) == default_size
 
 
 @pytest.mark.asyncio
@@ -51,7 +51,12 @@ async def test_get_one_genre(make_get_request, genre_id, status, details):
         HTTPStatus.OK,
     ),
 ])
-async def test_get_one_genre_from_cache(redis_client, make_get_request, genre_id, status):
+async def test_get_one_genre_from_cache(
+    redis_client,
+    make_get_request,
+    genre_id,
+    status
+):
     response = await make_get_request(f'/genres/{genre_id}')
     redis_data = await redis_client.get(f'genre_id:{genre_id}')
 

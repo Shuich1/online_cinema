@@ -8,7 +8,13 @@ def orjson_dumps(v, *, default):
     return orjson.dumps(v, default=default).decode()
 
 
-class Film(BaseModel):
+class BaseOrjsonModel(BaseModel):
+    class Config:
+        json_loads = orjson.loads
+        json_dumps = orjson_dumps
+
+
+class Film(BaseOrjsonModel):
     id: str
     title: str
     description: Optional[str]
@@ -21,26 +27,14 @@ class Film(BaseModel):
     actors_names: Optional[list[str]]
     writers_names: Optional[list[str]]
 
-    class Config:
-        json_loads = orjson.loads
-        json_dumps = orjson_dumps
 
-
-class Genre(BaseModel):
+class Genre(BaseOrjsonModel):
     id: str
     name: str
 
-    class Config:
-        json_loads = orjson.loads
-        json_dumps = orjson_dumps
 
-
-class Person(BaseModel):
+class Person(BaseOrjsonModel):
     id: str
     full_name: str
     roles: Optional[list[str]]
     film_ids: Optional[list[str]]
-
-    class Config:
-        json_loads = orjson.loads
-        json_dumps = orjson_dumps

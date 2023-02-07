@@ -3,7 +3,7 @@ from http import HTTPStatus
 import pytest
 from deepdiff import DeepDiff
 
-from ..testdata.es_data import movies_data
+from ..testdata.es_data import default_size, movies_data
 from ..testdata.response_models import Film
 
 
@@ -12,7 +12,7 @@ async def test_get_all_filmworks(make_get_request):
     response = await make_get_request('/films/')
 
     assert response['status'] == HTTPStatus.OK
-    assert len(response['json']) == 10
+    assert len(response['json']) == default_size
 
 
 @pytest.mark.asyncio
@@ -40,11 +40,16 @@ async def test_get_all_filmworks_with_size(make_get_request, size, status):
         HTTPStatus.OK,
     ),
 ])
-async def test_get_all_filmworks_sort(make_get_request, sort, first_film, status):
+async def test_get_all_filmworks_sort(
+    make_get_request,
+    sort,
+    first_film,
+    status
+):
     response = await make_get_request('/films/', params={'sort': sort})
 
     assert response['status'] == status
-    assert len(response['json']) == 10
+    assert len(response['json']) == default_size
     assert not DeepDiff(response['json'][0], first_film)
 
 
@@ -62,10 +67,13 @@ async def test_get_all_filmworks_sort(make_get_request, sort, first_film, status
     ),
 ])
 async def test_filter_by_genre(make_get_request, genre, first_film, status):
-    response = await make_get_request('/films/', params={'filter[genre]': genre})
+    response = await make_get_request(
+        '/films/',
+        params={'filter[genre]': genre}
+    )
 
     assert response['status'] == status
-    assert len(response['json']) == 10
+    assert len(response['json']) == default_size
     assert not DeepDiff(response['json'][0], first_film)
 
 
@@ -100,8 +108,8 @@ async def test_get_all_filmworks_with_page(make_get_request, page, status):
     response = await make_get_request('/films/', params={'page[number]': page})
 
     assert response['status'] == status
-    assert len(response['json']) == 10
-    assert response['json'][0]['id'] == movies_data[10 * (page - 1)]['id']
+    assert len(response['json']) == default_size
+    assert response['json'][0]['id'] == movies_data[default_size * (page - 1)]['id']
 
 
 @pytest.mark.asyncio
@@ -134,11 +142,20 @@ async def test_search_filmwork(make_get_request, query, first_film, status):
         None,
     ),
 ])
-async def test_get_filmwork_by_id_with_cache(redis_client, make_get_request, film_id, status, details):
+async def test_get_filmwork_by_id_with_cache(
+    redis_client,
+    make_get_request,
+    film_id,
+    status,
+    details
+):
     response = await make_get_request(f'/films/{film_id}')
     redis_data = await redis_client.get(f'film_id:{film_id}')
 
     assert response['status'] == status
     if details:
         assert redis_data is not None
-        assert not DeepDiff(response['json'], Film.parse_raw(redis_data).dict())
+        assert not DeepDiff(
+            response['json'],
+            Film.parse_raw(redis_data).dict()
+        )
