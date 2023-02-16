@@ -17,6 +17,19 @@ services:
       - ./db_init.sql:/docker-entrypoint-initdb.d/db_init.sql
       - ./database:/var/lib/postgresql/data
 
+#  postgres_auth:
+#    image: postgres:13
+#    container_name: postgres_auth
+#    env_file:
+#        - .env
+#    expose:
+#        - "5433"
+#    healthcheck:
+#        test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+#        interval: 5s
+#        timeout: 5s
+#        retries: 5
+
   django:
     container_name: django
     build: ./app
@@ -91,6 +104,11 @@ services:
     image: redis:7.0.8
     expose:
       - "6379"
+
+#  redis_auth:
+#    image: redis:7.0.8
+#    expose:
+#        - "6380"
 
   fastapi:
     container_name: fastapi
