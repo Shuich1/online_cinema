@@ -1,4 +1,4 @@
-from database import Base
+from db import Base
 from flask_security import UserMixin, RoleMixin
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy import Boolean, DateTime, Column, Integer, String, ForeignKey
@@ -6,15 +6,16 @@ from sqlalchemy import Boolean, DateTime, Column, Integer, String, ForeignKey
 
 class User(Base, UserMixin):
     __tablename__ = 'user'
-    id = Column(String(255), primary_key=True)
+    id = Column(Integer, primary_key=True)
     login = Column(String(255), unique=True)
     password = Column(String(255))
+    active = Column(Boolean())
     created = Column(DateTime())
     updated = Column(DateTime())
     roles = relationship('Role', secondary='roles_users',
                          backref=backref('users', lazy='dynamic'))
-    auth_id = Column(String(255), ForeignKey("auth_history.id"))
-    auth = relationship("AuthHistory", back_populates="user")
+    # auth_id = Column(String(255), ForeignKey("auth_history.id"))
+    # auth = relationship("AuthHistory", back_populates="user")
 
 
 class Role(Base, RoleMixin):
@@ -24,13 +25,13 @@ class Role(Base, RoleMixin):
     created = Column(DateTime())
 
 
-class AuthHistory(Base):
-    __tablename__ = 'auth_history'
-    id = Column(String(255), primary_key=True)
-    user_id = relationship('User', back_populates='auth_history')
-    user_agent = Column(String(255))
-    auth_data = Column(DateTime())
-    created = Column(DateTime())
+# class AuthHistory(Base):
+#     __tablename__ = 'auth_history'
+#     id = Column(String(255), primary_key=True)
+#     user_id = relationship('User', back_populates='auth_history')
+#     user_agent = Column(String(255))
+#     auth_data = Column(DateTime())
+#     created = Column(DateTime())
 
 
 class RolesUsers(Base):
