@@ -1,17 +1,17 @@
 from flask import Flask
 
-from . import auth
-from . import roles
-from .extensions import security, jwt
-from .models import db
+from .api.v1 import auth, roles
+from .core.config import settings
+from .services.database import db
+from .utils.extensions import jwt, security
 
 
 def create_app():
     app = Flask(__name__)
-    app.config['SECRET_KEY'] = '45b99b19b1e840b79bff2d3227d3915d'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.sqlite'
-    app.config['SECURITY_TOKEN_AUTHENTICATION_HEADER'] = 'Authorization'
-    app.config['SECURITY_PASSWORD_SALT'] = 'asasdasd'
+    app.config['SECRET_KEY'] = settings.SECRET_KEY
+    app.config['SQLALCHEMY_DATABASE_URI'] = settings.SQLALCHEMY_DATABASE_URI
+    app.config['SECURITY_TOKEN_AUTHENTICATION_HEADER'] = settings.SECURITY_TOKEN_AUTHENTICATION_HEADER
+    app.config['SECURITY_PASSWORD_SALT'] = settings.SECURITY_PASSWORD_SALT
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(roles.bp)
