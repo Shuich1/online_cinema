@@ -1,0 +1,543 @@
+openapi: 3.0.0
+info:
+  title: Auth Api
+  description: 'API к сервису авторизации'
+  version: v1
+servers:
+  - url: http://127.0.0.1
+paths:
+  /auth/v1/signup:
+    post:
+      tags:
+        - Auth
+      description: "Регистрация пользователя по его логину, почте и паролю"
+      summary: "Регистрация пользователя"
+      operationId: signUpUser
+      requestBody:
+        description: 'Имя пользователя, e-mail и пароль'
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SignUp'
+        required: true
+      responses:
+        "200":
+          description: "Успешная регистрация пользователя, выдача токенов"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        "400":
+          description: 'Введены некорректные данные'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /auth/v1/signin:
+    post:
+      tags:
+        - Auth
+      description: ""
+      summary: "Аутентификация пользователя"
+      operationId: signInUser
+      requestBody:
+        description: 'Имя пользователя и пароль'
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SignIn'
+      responses:
+        '200':
+          description: "Успешная аутентификация пользователя, выдача токенов"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '404':
+          description: "Неверный логин или пароль"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /auth/v1/refresh_token:
+    get:
+      tags:
+        - Auth
+      description: ""
+      summary: "Перевыдача токена"
+      operationId: refreshToken
+      parameters:
+        - name: RefreshToken
+          in: cookie
+          description: 'Refresh токен пользователя'
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: "Выдана новая пара токенов"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        "400":
+          description: 'Некорректный refresh токен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /auth/v1/logout:
+    get:
+      tags:
+        - Auth
+      summary: "Выход пользователя из системы"
+      description: ""
+      parameters:
+      - name: RefreshToken
+        in: cookie
+        description: 'Refresh токен пользователя'
+        schema:
+          type: string
+        required: true
+      - name: AccessToken
+        in: cookie
+        description: 'Access токен пользователя'
+        schema:
+          type: string
+        required: true
+      operationId: logoutUser
+      responses:
+        "200":
+          description: "Успешный выход из системы, отзыв токенов"
+  /auth/v1/change:
+    put:
+      tags:
+        - Auth
+      summary: "Изменение логина/пароля пользователя"
+      description: "Изменение логин/пароля пользователя"
+      operationId: updateUser
+      requestBody:
+        description: 'Изменённый логин или пароль'
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                login:
+                  type: string
+                password:
+                  type: string
+                  format: password
+        required: true
+      responses:
+        "200":
+          description: "Информация пользователя обновлена"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        "400":
+          description: "Недопустимый логин или пароль"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /auth/v1/history:
+    get:
+      tags:
+        - Auth
+      operationId: getAuthHistory
+      summary: "Получение пользователем своей истории входов в аккаунт"
+      description: ""
+      parameters:
+        - name: AccessToken
+          in: cookie
+          description: 'Access токен пользователя'
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: "История входов в аккаунт"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthHistory'
+  /roles/v1/roles:
+    get:
+      tags:
+        - Roles
+      operationId: getRoles
+      summary: 'Просмотр всех cуществующих ролей'
+      description: ''
+      parameters:
+        - name: AccessToken
+          in: cookie
+          description: 'Access токен пользователя'
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: 'Список всех ролей'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Role'
+        "403":
+          description: "Отказано в доступе"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /roles/v1/role:
+    post:
+      tags: 
+        - Roles
+      operationId: createRole
+      summary: 'Создание новой роли'
+      description: ''
+      requestBody:
+        description: 'Название и описание новой роли'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Role'
+        required: true
+      responses:
+        "200":
+          description: "Роль успешно создана"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Role created'
+        "403":
+          description: "Отказано в доступе"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Roles
+      summary: 'Удаление существующей роли'
+      description: ''
+      parameters:
+        - name: AccessToken
+          in: cookie
+          description: 'Access токен пользователя'
+          schema:
+            type: string
+          required: true
+        - name: id
+          in: query
+          description: 'Id удаляемой роли'
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: "Роль успешно удалена"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Role deleted'
+        "404":
+          description: "Роль не найдена"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "403":
+          description: "Отказано в доступе"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags:
+        - Roles
+      summary: 'Изменение роли'
+      description: ''
+      operationId: updateRole
+      parameters:
+        - name: AccessToken
+          in: cookie
+          description: 'Access токен пользователя'
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: 'Название и описание новой роли'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Role'
+        required: true
+      responses:
+        "200":
+          description: "Роль успешно обновлена"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Role updated'
+        "404":
+          description: "Роль не найдена"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "403":
+          description: "Отказано в доступе"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /roles/v1/user:
+    post:
+      tags:
+        - Roles
+      summary: 'Добавление роли пользователю'
+      description: ''
+      operationId: updateUserRole
+      parameters:
+        - name: AccessToken
+          in: cookie
+          description: 'Access токен пользователя'
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: 'Id пользователя и роли'
+        content:
+          application/json:
+            schema:
+              properties:
+                userId:
+                  type: string
+                roleId:
+                  type: string
+        required: true
+      responses:
+        "200":
+          description: "Роль добавлена пользователю"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Added role for user"
+        "404":
+          description: "Пользователь / роль не найдены"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "403":
+          description: "Отказано в доступе"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Roles
+      summary: 'Удаление роли пользователя'
+      description: ''
+      operationId: deleteUserRole
+      parameters:
+        - name: AccessToken
+          in: cookie
+          description: 'Access токен пользователя'
+          schema:
+            type: string
+          required: true
+        - name: userId
+          in: query
+          schema:
+            type: string
+          required: true
+        - name: roleId
+          in: query
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: "Роль пользователя удалена"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Deleted user role"
+        "404":
+          description: "Пользователь / роль не найдены"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "403":
+          description: "Отказано в доступе"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      tags:
+        - Roles
+      summary:  'Получение списка всех ролей пользователя'
+      description: ''
+      operationId: getUserRoles
+      parameters:
+        - name: AccessToken
+          in: cookie
+          description: 'Access токен пользователя'
+          schema:
+            type: string
+          required: true
+        - name: userId
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 'Список ролей пользователя'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Role'
+        "404":
+          description: "Пользователь не найден"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "403":
+          description: "Отказано в доступе"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    SignUp:
+      required:
+        - login
+        - email
+        - password
+        - password2
+      type: object
+      properties:
+        login:
+          type: string
+          description: 'User login'
+        email:
+          type: string
+          format: email
+          description: 'User e-mail' 
+          example: example@gmail.com
+        password:
+          type: string
+          format: password
+          description: 'User password'
+          example: qwerty
+        password2:
+          type: string
+          format: password
+          description: 'User password confirmation'
+          example: qwerty
+    SignIn:
+      required:
+        - login
+        - password
+      type: object
+      properties:
+        login:
+          type: string
+          description: 'User login'
+        password:
+          type: string
+          format: password
+          description: 'User password'
+          example: qwerty
+    Token:
+      required:
+        - access_token
+        - refresh_token
+      type: object
+      properties:
+        access_token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiODA5OTEwMDIwMzAiLCJpYXQiOjEyMDE2OTIzNzcsImV4cCI6MTUxNjIzOTAyMiwicm9sZSI6InN1YnNjcmliZXIifQ.wnN9e4rPDxVSReh9Qvigkmly2aQ_PNwQ-MNNpdsixgA"
+        refresh_token:
+          type: string
+          example: "aWF0IjoxNTE2MNNpdsixgA"
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+        error:
+          type: string
+    AuthHistory:
+      required:
+        - id
+        - user_agent
+        - created
+      type: object
+      properties:
+        id:
+          type: string
+          example: '087e52c9-282c-474b-849d-ad0dec98bb0e'
+        user_agent:
+          type: string
+          example: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36 RuxitSynthetic/1.0 v3831889167 t3984374008602804876 athfa3c3975 altpub cvcv=2 smf=0'
+        ip_address:
+          type: string
+          example: '127.0.0.1'
+        created:
+          type: string
+          format: date-time
+          example: '2023-02-10T22:54:13.155Z'
+    Role:
+      required:
+        - id
+        - name
+        - description
+      type: object
+      properties:
+        id:
+          type: string
+          example: '060a6ae5-a990-431d-8aed-f133dbaef8ff'
+        name:
+          type: string
+          example: 'Administrator'
+        description:
+          type: string
+          example: 'Administrator role description'
+        accesses:
+          type: array
+          items:
+            type: string
+            example: 'Write comments'
