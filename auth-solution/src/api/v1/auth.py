@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import (create_access_token, create_refresh_token,
                                 get_jwt, get_jwt_identity, jwt_required)
 from flask_security.utils import hash_password, verify_password
-from src.models.models import AuthHistory
+from src.models.auth_history import AuthHistory
 from src.services.redis import jwt_redis_blocklist, jwt_redis_refresh_tokens
 from src.utils.extensions import jwt, user_datastore
 
