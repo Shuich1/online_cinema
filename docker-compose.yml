@@ -17,18 +17,21 @@ services:
       - ./db_init.sql:/docker-entrypoint-initdb.d/db_init.sql
       - ./database:/var/lib/postgresql/data
 
-#  postgres_auth:
-#    image: postgres:13
-#    container_name: postgres_auth
-#    env_file:
-#        - .env
-#    expose:
-#        - "5433"
-#    healthcheck:
-#        test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
-#        interval: 5s
-#        timeout: 5s
-#        retries: 5
+  postgres_auth:
+    image: postgres:13
+    container_name: postgres_auth
+    env_file:
+      - auth.env
+    expose:
+      - "5433"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${AUTH_POSTGRES_USER} -d ${AUTH_POSTGRES_DB} -p ${AUTH_POSTGRES_PORT}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./auth_database:/var/lib/postgresql/data
+    command: -p 5433
 
   django:
     container_name: django
@@ -105,10 +108,11 @@ services:
     expose:
       - "6379"
 
-#  redis_auth:
-#    image: redis:7.0.8
-#    expose:
-#        - "6380"
+  redis_auth:
+    image: redis:7.0.8
+    expose:
+     - "6380"
+    command: --port 6380
 
   fastapi:
     container_name: fastapi
@@ -129,9 +133,27 @@ services:
         condition: service_started
     expose:
       - "80"
-
+    
+  flask_auth:
+    container_name: flask_auth
+    build: ./auth-solution
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --silent ${FLASK_HOST}:${FLASK_PORT} >/dev/null || exit 1" ]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    env_file:
+      - .env
+    depends_on:
+      postgres_auth:
+        condition: service_healthy
+      redis_auth:
+        condition: service_started
+    expose:
+      - "5000"
 volumes:
   database:
+  auth_database:
   static_volume:
   elasticsearch-data:
     driver: local
