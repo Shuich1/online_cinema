@@ -12,4 +12,4 @@ RUN pip install --upgrade pip \
 
 COPY . .
 
-ENTRYPOINT [ "python", "wsgi.py" ]
+ENTRYPOINT [ "sh", "entrypoint.sh" ]
