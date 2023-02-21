@@ -1,19 +1,12 @@
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 
-
-from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt, get_jwt_identity
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import (create_access_token, create_refresh_token,
+                                get_jwt, get_jwt_identity, jwt_required)
 from flask_security.utils import hash_password, verify_password
-from flask_jwt_extended import create_access_token, create_refresh_token
-
-from .extensions import (
-    user_datastore,
-    jwt,
-    jwt_redis_blocklist,
-    jwt_redis_refresh_tokens,
-)
-from .models import AuthHistory
-
+from src.models.models import AuthHistory
+from src.services.redis import jwt_redis_blocklist, jwt_redis_refresh_tokens
+from src.utils.extensions import jwt, user_datastore
 
 ACCESS_EXPIRES = timedelta(hours=1)
 
@@ -53,7 +46,7 @@ def signup():
     access_token = create_access_token(identity=new_user.id)
     refresh_token = create_refresh_token(identity=new_user.id)
 
-    jwt_redis_refresh_tokens.set(new_user.id, refresh_token)
+    jwt_redis_refresh_tokens.set(str(new_user.id), refresh_token)
 
     headers = {
         'Authorization': f'Bearer {access_token}'
@@ -68,14 +61,14 @@ def signup():
 def signin():
     email = request.json["email"]
     password = request.json["password"]
-
+    print(1)
     user = user_datastore.find_user(email=email)
 
     if not user:
         return jsonify('Пользователь не зарегистрирован')
 
     if not verify_password(password, user.password):
-        return jsonify('Не верный пароль')
+        return jsonify('Неверный пароль')
 
     auth_history = AuthHistory(
         user_agent=request.headers['User-Agent'],
@@ -89,8 +82,7 @@ def signin():
     access_token = create_access_token(identity=user.id)
     refresh_token = create_refresh_token(identity=user.id)
 
-    jwt_redis_refresh_tokens.set(user.id, refresh_token)
-
+    jwt_redis_refresh_tokens.set(str(user.id), refresh_token)
     headers = {
         'Authorization': f'Bearer {access_token}'
     }

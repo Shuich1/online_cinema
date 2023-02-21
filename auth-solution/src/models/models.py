@@ -1,18 +1,15 @@
 import datetime
-from dataclasses import dataclass
 import uuid
+from dataclasses import dataclass
 
-from flask_security import UserMixin, RoleMixin
-from flask_sqlalchemy import SQLAlchemy
-
-db = SQLAlchemy()
+from flask_security import RoleMixin, UserMixin
+from sqlalchemy.dialects.postgresql import UUID
+from src.services.database import db
 
 
 class User(db.Model, UserMixin):
     __tablename__ = 'user'
-    # TODO: при использовании Postgres
-    # db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
     email = db.Column(db.String(255), unique=True)
     password = db.Column(db.String(255))
     active = db.Column(db.Boolean())
@@ -29,11 +26,11 @@ class User(db.Model, UserMixin):
 class Role(db.Model, RoleMixin):
     __tablename__ = 'role'
 
-    id: str
+    id: uuid
     name: str
     created: datetime.datetime
 
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
     name = db.Column(db.String(80), unique=True)
     created = db.Column(db.DateTime(), default=datetime.datetime.now())
 
@@ -42,15 +39,15 @@ class Role(db.Model, RoleMixin):
 class AuthHistory(db.Model):
     __tablename__ = 'auth_history'
 
-    id: str
+    id: uuid
     user_id: str
     user_agent: str
     host: str
     auth_data: datetime.datetime
     created: datetime.datetime
 
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    user_id = db.Column(db.String(), db.ForeignKey('user.id'))
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
+    user_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('user.id'))
     user_agent = db.Column(db.String(255))
     host = db.Column(db.String(255))
     auth_data = db.Column(db.DateTime())
@@ -60,8 +57,8 @@ class AuthHistory(db.Model):
 class RolesUsers(db.Model):
     __tablename__ = 'roles_users'
 
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    user_id = db.Column('user_id', db.String(36), db.ForeignKey('user.id'))
-    role_id = db.Column('role_id', db.String(36), db.ForeignKey('role.id'))
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
+    user_id = db.Column('user_id', db.UUID(as_uuid=True), db.ForeignKey('user.id'))
+    role_id = db.Column('role_id', db.UUID(as_uuid=True), db.ForeignKey('role.id'))
     created = db.Column(db.DateTime())
     updated = db.Column(db.DateTime())
