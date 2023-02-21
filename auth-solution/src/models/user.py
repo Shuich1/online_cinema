@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+import datetime
 
 from flask_security import UserMixin
 from src.services.database import db

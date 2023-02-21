@@ -1,0 +1,1 @@
+gunicorn src.wsgi:app --bind $FLASK_HOST:$FLASK_PORT --workers $FLASK_WORKERS --worker-class gevent
