@@ -20,8 +20,12 @@ services:
   postgres_auth:
     image: postgres:13
     container_name: postgres_auth
-    env_file:
-      - auth.env
+    environment:
+      - POSTGRES_HOST=${AUTH_POSTGRES_HOST}
+      - POSTGRES_PORT=${AUTH_POSTGRES_PORT}
+      - POSTGRES_USER=${AUTH_POSTGRES_USER}
+      - POSTGRES_DB=${AUTH_POSTGRES_DB}
+      - POSTGRES_PASSWORD=${AUTH_POSTGRES_PASSWORD}
     expose:
       - "5433"
     healthcheck:
