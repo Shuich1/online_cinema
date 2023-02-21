@@ -1,7 +1,9 @@
 import uuid
+from datetime import datetime
 
 from flask_security import UserMixin
 from src.services.database import db
+
 from .user_roles import RolesUsers
 
 
@@ -11,8 +13,8 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(255), unique=True)
     password = db.Column(db.String(255))
     active = db.Column(db.Boolean())
-    created = db.Column(db.DateTime())
-    updated = db.Column(db.DateTime())
+    created = db.Column(db.DateTime(), default=datetime.datetime.now())
+    updated = db.Column(db.DateTime(), default=datetime.datetime.now())
     roles = db.relationship(
         'Role',
         secondary='roles_users',
