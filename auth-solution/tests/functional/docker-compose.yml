@@ -2,25 +2,59 @@ version: '3'
 services:
     postgres_test:
         image: postgres:13
-        container_name: postgres
-        env_file:
-            - .env
+        container_name: postgres_test
+        environment:
+        - POSTGRES_HOST=${AUTH_POSTGRES_HOST}
+        - POSTGRES_PORT=${AUTH_POSTGRES_PORT}
+        - POSTGRES_USER=${AUTH_POSTGRES_USER}
+        - POSTGRES_DB=${AUTH_POSTGRES_DB}
+        - POSTGRES_PASSWORD=${AUTH_POSTGRES_PASSWORD}
         expose:
             - "5433"
         healthcheck:
-            test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+            test: [ "CMD-SHELL", "pg_isready -U ${AUTH_POSTGRES_USER} -d ${AUTH_POSTGRES_DB} -p ${AUTH_POSTGRES_PORT}"]
             interval: 5s
             timeout: 5s
             retries: 5
-
+        command: -p 5433
+    
     redis_test:
         container_name: redis_test
         image: redis:7.0.8
         healthcheck:
-          test: [ "CMD", "redis-cli", "ping" ]
+          test: [ "CMD", "redis-cli", "-p", "6380", "ping" ]
           interval: 10s
           timeout: 10s
           retries: 10
+        command: --port 6380
         ports:
           - "6380:6380"
 
+    flask_auth_test:
+        container_name: auth_test
+        build: ../../.
+        env_file:
+            - .env
+        healthcheck:
+            test: [ "CMD-SHELL", "curl --silent ${FLASK_HOST}:${FLASK_PORT} > /dev/null || exit 1" ]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+        depends_on:
+            postgres_test:
+                condition: service_healthy
+            redis_test:
+                condition: service_healthy
+        ports:
+        - "5000:5000"
+
+    auth_tests:
+        container_name: auth_functional_tests
+        build: .
+        env_file:
+            - .env
+        depends_on:
+            flask_auth_test:
+                condition:
+                    service_healthy
+        entrypoint: pytest src -s
