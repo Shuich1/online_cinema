@@ -99,7 +99,7 @@ def refresh_token():
     user_id = get_jwt_identity()
     redis_refresh_token = jwt_redis_refresh_tokens.get(user_id)
     if redis_refresh_token != refresh_token:
-        return jsonify('Не верный refresh token'), 400
+        return jsonify('Неверный refresh token'), 400
 
     access_token = create_access_token(identity=user_id)
     refresh_token = create_refresh_token(identity=user_id)

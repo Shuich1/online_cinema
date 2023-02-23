@@ -8,9 +8,12 @@ class Database(BaseSettings):
     host: str = Field(..., env='AUTH_POSTGRES_HOST')
     port: int = Field('5433', env='AUTH_POSTGRES_PORT')
 
+
 class Settings(BaseSettings):
     SECRET_KEY: str = Field(..., env='SECRET_KEY')
-    
+    FLASK_ADMIN_MAIL: str = Field(..., env='FLASK_ADMIN_MAIL')
+    FLASK_ADMIN_PASS: str = Field(..., env='FLASK_ADMIN_PASS')
+
     AUTH_REDIS_HOST: str = Field(..., env='AUTH_REDIS_HOST')
     AUTH_REDIS_PORT: str = Field(6380, env='AUTH_REDIS_PORT')
 
