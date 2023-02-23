@@ -1,6 +1,5 @@
 import aiohttp
 import pytest
-
 from functional.settings import test_settings
 
 

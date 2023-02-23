@@ -4,7 +4,6 @@ from functools import wraps
 
 from aioredis import RedisError
 from elasticsearch.exceptions import ElasticsearchException
-
 from utils.logger import get_logger
 
 logger = get_logger(__name__)

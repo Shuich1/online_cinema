@@ -3,9 +3,8 @@ from typing import Optional
 
 from elasticsearch import NotFoundError
 from pydantic import BaseModel
-
-from src.db.cache import get_cache, Cache
-from src.db.data_storage import get_data_storage, DataStorage
+from src.db.cache import Cache, get_cache
+from src.db.data_storage import DataStorage, get_data_storage
 
 
 class Service(ABC):

@@ -5,7 +5,7 @@ from fastapi.responses import ORJSONResponse
 
 from .api.v1 import films, genre, person
 from .core.config import settings
-from .db import data_storage, cache
+from .db import cache, data_storage
 
 app = FastAPI(
     title="Read-only API для онлайн-кинотеатра",

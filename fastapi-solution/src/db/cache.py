@@ -3,7 +3,6 @@ from typing import Optional
 
 from aioredis import Redis
 
-
 FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5
 
 

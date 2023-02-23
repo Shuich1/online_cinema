@@ -2,7 +2,6 @@ import json
 
 import pytest
 from elasticsearch import AsyncElasticsearch
-
 from functional.settings import test_settings
 from functional.testdata.es_data import genres_data, movies_data, persons_data
 

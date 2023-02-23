@@ -2,12 +2,11 @@ from functools import lru_cache
 from typing import Optional
 
 from fastapi import Depends
-
-from src.db.cache import get_cache, Cache
-from src.db.data_storage import get_data_storage, DataStorage
+from src.db.cache import Cache, get_cache
+from src.db.data_storage import DataStorage, get_data_storage
 from src.models.person import Person
-from src.services.service import BaseService
 from src.services.film import FilmService
+from src.services.service import BaseService
 
 
 class PersonService(BaseService):
