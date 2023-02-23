@@ -1,11 +1,11 @@
 from flask import Flask
 from flask_security.utils import hash_password
+from src.utils.extensions import user_datastore
 
 from .api.v1 import auth, roles
 from .core.config import settings
 from .services.database import db
 from .utils.extensions import jwt, security
-from src.utils.extensions import user_datastore
 
 
 def create_app():
