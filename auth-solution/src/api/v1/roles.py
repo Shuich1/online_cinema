@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from src.utils.extensions import user_datastore
-
+from http import HTTPStatus
 bp = Blueprint('roles', __name__, url_prefix='/roles')
 
 
@@ -17,7 +17,7 @@ def has_role(name: str) -> bool:
 def roles():
     """Просмотр всех ролей."""
     if not has_role('admin'):
-        return jsonify('Access is denied'), 403
+        return jsonify('Access is denied'), HTTPStatus.FORBIDDEN
     all_roles = user_datastore.role_model.query.all()
     return jsonify(all_roles)
 
@@ -28,7 +28,7 @@ def role():
     """Управление ролью."""
 
     if not has_role('admin'):
-        return jsonify('Access is denied'), 403
+        return jsonify('Access is denied'), HTTPStatus.FORBIDDEN
 
     if request.method == 'POST':
         name = request.json["name"]
@@ -55,7 +55,7 @@ def user(id):
     """Управление пользователем."""
 
     if not has_role('admin'):
-        return jsonify('Access is denied'), 403
+        return jsonify('Access is denied'), HTTPStatus.FORBIDDEN
 
     _user = user_datastore.find_user(id=id)
     if not _user:
