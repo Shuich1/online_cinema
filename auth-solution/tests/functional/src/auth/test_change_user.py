@@ -4,8 +4,9 @@ import pytest
 
 from functional.testdata.users_data import test_user_change
 
+pytestmark = pytest.mark.asyncio
 
-@pytest.mark.asyncio
+
 @pytest.mark.order(-1)
 async def test_change_user(make_request, sign_in):
     access_token = sign_in['access_token']
