@@ -1,10 +1,12 @@
 from flask import Flask
+from werkzeug.exceptions import HTTPException
 
 from .api.v1 import auth, roles
 from .core.config import settings
 from .services.database import db
 from .utils.extensions import jwt, security, migrate
 from .utils.super_user import bp
+from .utils.error_handler import handle_exception
 
 
 def create_app():
@@ -17,6 +19,8 @@ def create_app():
     app.register_blueprint(auth.bp)
     app.register_blueprint(roles.bp)
     app.register_blueprint(bp)
+
+    app.register_error_handler(HTTPException, handle_exception)
 
     db.init_app(app)
     migrate.init_app(app, db)
