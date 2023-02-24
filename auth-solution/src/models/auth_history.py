@@ -1,11 +1,9 @@
 import datetime
 import uuid
-from dataclasses import dataclass
 
 from src.services.database import db
 
 
-@dataclass
 class AuthHistory(db.Model):
     __tablename__ = 'auth_history'
 

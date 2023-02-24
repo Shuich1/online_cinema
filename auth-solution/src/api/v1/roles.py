@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from src.utils.extensions import user_datastore
 from http import HTTPStatus
+
 bp = Blueprint('roles', __name__, url_prefix='/roles')
 
 
