@@ -1,10 +1,12 @@
 import datetime
 import uuid
+from dataclasses import dataclass
 
 from flask_security import RoleMixin
 from src.services.database import db
 
 
+@dataclass
 class Role(db.Model, RoleMixin):
     __tablename__ = 'role'
 
