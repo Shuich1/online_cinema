@@ -147,9 +147,10 @@ def change():
     return jsonify('updated'), HTTPStatus.OK
 
 
-@bp.route('/history', methods=['GET'])
+@bp.route('/history/<int:page>', methods=['GET'])
 @jwt_required()
-def history():
+def history(page=1):
+    per_page = 10
     user_id = get_jwt_identity()
-    user = user_datastore.find_user(id=user_id)
-    return jsonify(user.auth_history), HTTPStatus.OK
+    _history = AuthHistory.query.filter_by(user_id=user_id).paginate(page=page, per_page=per_page, error_out=False)
+    return jsonify(_history.items), HTTPStatus.OK
