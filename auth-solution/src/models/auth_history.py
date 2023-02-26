@@ -27,4 +27,4 @@ class AuthHistory(db.Model):
     user_agent = db.Column(db.String(255))
     host = db.Column(db.String(255))
     auth_data = db.Column(db.DateTime)
-    created = db.Column(db.DateTime, default=datetime.datetime.utcnow())
+    created = db.Column(db.DateTime, default=datetime.datetime.utcnow)

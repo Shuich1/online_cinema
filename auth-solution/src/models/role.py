@@ -22,4 +22,4 @@ class Role(db.Model, RoleMixin):
         nullable=False
     )
     name = db.Column(db.String(80), unique=True)
-    created = db.Column(db.DateTime, default=datetime.datetime.utcnow())
+    created = db.Column(db.DateTime, default=datetime.datetime.utcnow)

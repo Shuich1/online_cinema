@@ -24,5 +24,5 @@ class RolesUsers(db.Model):
         db.UUID(as_uuid=True),
         db.ForeignKey('role.id')
     )
-    created = db.Column(db.DateTime, default=datetime.datetime.utcnow())
-    updated = db.Column(db.DateTime, default=datetime.datetime.utcnow())
+    created = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    updated = db.Column(db.DateTime, default=datetime.datetime.utcnow)
