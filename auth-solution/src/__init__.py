@@ -1,11 +1,12 @@
 from flask import Flask
-from flask_security.utils import hash_password
-from src.utils.extensions import user_datastore
+from werkzeug.exceptions import HTTPException
 
 from .api.v1 import auth, roles
 from .core.config import settings
 from .services.database import db
-from .utils.extensions import jwt, security
+from .utils.extensions import jwt, security, migrate
+from .utils.super_user import bp
+from .utils.error_handler import handle_exception
 
 
 def create_app():
@@ -17,24 +18,17 @@ def create_app():
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(roles.bp)
+    app.register_blueprint(bp)
+
+    app.register_error_handler(HTTPException, handle_exception)
 
     db.init_app(app)
+    migrate.init_app(app, db)
 
     with app.app_context():
         app.logger.info('initialised database.')
         db.create_all()
         security.init_app(app)
         jwt.init_app(app)
-
-        if not user_datastore.find_role(role='admin'):
-            user_datastore.create_role(name='admin')
-            user_datastore.commit()
-        admin_user = user_datastore.find_user(email=settings.FLASK_ADMIN_MAIL)
-        if not admin_user:
-            user_datastore.create_user(email=settings.FLASK_ADMIN_MAIL,
-                                       password=hash_password(settings.FLASK_ADMIN_PASS),
-                                       roles=['admin']
-                                       )
-            user_datastore.commit()
 
     return app

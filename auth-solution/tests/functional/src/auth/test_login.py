@@ -4,8 +4,9 @@ import pytest
 
 from functional.testdata.users_data import unregistered_email, test_user
 
+pytestmark = pytest.mark.asyncio
 
-@pytest.mark.asyncio
+
 @pytest.mark.order(after='test_register.py::test_register_user')
 async def test_login(make_request):
     response = await make_request(
@@ -19,7 +20,6 @@ async def test_login(make_request):
     assert response['json']['refresh_token'] is not None
 
 
-@pytest.mark.asyncio
 @pytest.mark.order(after='test_register.py::test_register_user')
 async def test_wrong_password_login(make_request, faker):
     response = await make_request(
@@ -35,7 +35,6 @@ async def test_wrong_password_login(make_request, faker):
     assert 'Authorization' not in response['headers']
 
 
-@pytest.mark.asyncio
 async def test_unregistered_user_login(make_request):
     response = await make_request(
         'POST',

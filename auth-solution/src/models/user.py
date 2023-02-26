@@ -19,8 +19,8 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(255), unique=True)
     password = db.Column(db.String(255))
     active = db.Column(db.Boolean())
-    created = db.Column(db.DateTime(), default=datetime.datetime.now())
-    updated = db.Column(db.DateTime(), default=datetime.datetime.now())
+    created = db.Column(db.DateTime, default=datetime.datetime.utcnow())
+    updated = db.Column(db.DateTime, default=datetime.datetime.utcnow())
     roles = db.relationship(
         'Role',
         secondary='roles_users',
