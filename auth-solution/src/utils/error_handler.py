@@ -1,7 +1,10 @@
 from flask import json
 from werkzeug.exceptions import HTTPException
 
+from .trace_functions import traced
 
+
+@traced
 def handle_exception(ex: HTTPException):
     """Return JSON instead of HTML for HTTP errors."""
     # start with the correct headers and status code from the error
