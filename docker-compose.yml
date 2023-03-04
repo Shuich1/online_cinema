@@ -75,6 +75,7 @@ services:
     image: elasticsearch:7.17.8
     environment:
       - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms2048m -Xmx2048m
     #    volumes:
     #      - ./elasticsearch-data:/usr/share/elasticsearch/data
     healthcheck:
@@ -143,7 +144,7 @@ services:
     build: ./auth-solution
     healthcheck:
       test: [ "CMD-SHELL", "curl --silent ${FLASK_HOST}:${FLASK_PORT} >/dev/null || exit 1" ]
-      interval: 10s
+      interval: 5m
       timeout: 10s
       retries: 10
     env_file:
@@ -155,6 +156,14 @@ services:
         condition: service_started
     expose:
       - "5000"
+  
+  jaeger:
+    container_name: jaeger
+    image: jaegertracing/all-in-one:1.42
+    ports:
+      - "16686:16686"
+      - "6831:6831/udp"
+
 volumes:
   database:
   auth_database:
