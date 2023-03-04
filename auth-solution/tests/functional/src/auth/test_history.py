@@ -13,7 +13,7 @@ async def test_history(make_request, sign_in):
 
     response = await make_request(
         'GET',
-        '/auth/history',
+        '/auth/history/1',
         headers={
             'Authorization': access_token
         }
@@ -27,7 +27,7 @@ async def test_history(make_request, sign_in):
 async def test_history_without_auth(make_request):
     response = await make_request(
         'GET',
-        '/auth/history'
+        '/auth/history/1'
     )
 
     assert response['status'] == HTTPStatus.UNAUTHORIZED

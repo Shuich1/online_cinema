@@ -4,7 +4,7 @@ import aiohttp
 import pytest
 
 from .settings import test_settings
-from .testdata.users_data import test_user
+from .testdata.users_data import test_user, superuser
 
 
 @pytest.fixture
@@ -42,6 +42,21 @@ async def sign_in(make_request):
         'POST',
         '/auth/signin',
         payload=test_user.dict()
+    )
+
+    return {
+        'access_token': response['headers']['Authorization'],
+        'refresh_token': response['json']['refresh_token']
+    }
+
+
+@pytest.fixture
+@pytest.mark.asyncio
+async def superuser_sign_in(make_request):
+    response = await make_request(
+        'POST',
+        '/auth/signin',
+        payload=superuser.dict()
     )
 
     return {

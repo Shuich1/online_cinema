@@ -32,7 +32,7 @@ async def test_logout(make_request):
 
     response = await make_request(
         'GET',
-        '/auth/history',
+        '/auth/history/1',
         headers={
             'Authorization': access_token
         }
