@@ -1,11 +1,13 @@
 import aioredis
-from elasticsearch import AsyncElasticsearch
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import ORJSONResponse
+from opentelemetry import trace
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 from .api.v1 import films, genre, person
 from .core.config import settings
 from .db import cache, data_storage
+from .services.tracer import configure_tracer
 
 app = FastAPI(
     title="Read-only API для онлайн-кинотеатра",
@@ -16,6 +18,23 @@ app = FastAPI(
     default_response_class=ORJSONResponse,
 )
 
+if settings.tracer.TRACER_ENABLED:
+    configure_tracer()
+    FastAPIInstrumentor.instrument_app(app, excluded_urls="/")
+
+    @app.middleware("http")
+    async def request_id_checking(request: Request, call_next):
+        request_id = request.headers.get('X-Request-Id')
+        if not request_id:
+            raise RuntimeError('Request id is required')
+
+        if request_id != "healthcheck":
+            tracer = trace.get_tracer(__name__)
+            with tracer.start_as_current_span(request.url.path) as span:
+                span.set_attribute('http.request_id', request_id)
+                return await call_next(request)
+
+        return await call_next(request)        
 
 @app.on_event('startup')
 async def startup():

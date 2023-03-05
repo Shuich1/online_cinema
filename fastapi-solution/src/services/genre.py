@@ -2,6 +2,7 @@ from functools import lru_cache
 from typing import Optional
 
 from fastapi import Depends
+from src.core.trace_functions import traced
 from src.db.cache import Cache, get_cache
 from src.db.data_storage import DataStorage, get_data_storage
 from src.models.genre import Genre
@@ -12,6 +13,7 @@ class GenreService(BaseService):
     def __init__(self, cache: Cache, data_storage: DataStorage):
         super().__init__(cache, data_storage)
 
+    @traced
     async def get_all(self,
                       page_number: Optional[int],
                       size: Optional[int]) -> Optional[list[Genre]]:
@@ -26,6 +28,7 @@ class GenreService(BaseService):
                                   size=size,
                                   model=Genre)
 
+    @traced
     async def get_by_id(self, uuid: str) -> Optional[Genre]:
         data = await self._get_data_from_cache(name_id='genre_id',
                                                uuid=uuid,

@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Optional
 
 from aioredis import Redis
+from src.core.trace_functions import traced
 
 FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5
 
@@ -24,9 +25,11 @@ class RedisCache(Cache):
     def __init__(self, redis: Redis):
         self.redis = redis
 
+    @traced
     async def get(self, key):
         return await self.redis.get(key)
 
+    @traced
     async def set(self, key, value):
         await self.redis.set(
             key,
@@ -34,6 +37,7 @@ class RedisCache(Cache):
             expire=FILM_CACHE_EXPIRE_IN_SECONDS
         )
 
+    @traced
     async def close(self):
         self.redis.close()
         await self.redis.wait_closed()

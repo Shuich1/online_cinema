@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Optional
 
 from elasticsearch import AsyncElasticsearch
+from src.core.trace_functions import traced
 
 
 class DataStorage(ABC):
@@ -22,15 +23,19 @@ class ElasticStorage(DataStorage):
     def __init__(self, elastic: AsyncElasticsearch):
         self.elastic = AsyncElasticsearch(hosts=elastic)
 
+    @traced
     async def get(self, *args, **kwargs):
         return await self.elastic.get(*args, **kwargs)
 
+    @traced
     async def search(self, *args, **kwargs):
         return await self.elastic.search(*args, **kwargs)
 
+    @traced
     async def scroll(self, *args, **kwargs):
         return await self.elastic.scroll(*args, **kwargs)
 
+    @traced
     async def close(self):
         await self.elastic.close()
 

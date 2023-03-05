@@ -2,6 +2,7 @@ from functools import lru_cache
 from typing import Optional
 
 from fastapi import Depends
+from src.core.trace_functions import traced
 from src.db.cache import Cache, get_cache
 from src.db.data_storage import DataStorage, get_data_storage
 from src.models.film import Film
@@ -12,6 +13,7 @@ class FilmService(BaseService):
     def __init__(self, cache: Cache, data_storage: DataStorage):
         super().__init__(cache, data_storage)
 
+    @traced
     async def get_all(self,
                       sort: Optional[str],
                       genre: Optional[str],
@@ -51,6 +53,7 @@ class FilmService(BaseService):
                                   model=Film,
                                   sort=sort)
 
+    @traced
     async def search(self,
                      query: str,
                      page_number: Optional[int],
@@ -73,6 +76,7 @@ class FilmService(BaseService):
                                   size=size,
                                   model=Film)
 
+    @traced
     async def get_by_id(self, uuid: str) -> Optional[Film]:
         data = await self._get_data_from_cache(name_id='film_id',
                                                uuid=uuid,

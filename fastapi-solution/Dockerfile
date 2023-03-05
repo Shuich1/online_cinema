@@ -7,8 +7,7 @@ ENV PYTHONUNBUFFERED 1
 
 COPY requirements.txt requirements.txt
 
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup.sh && sh rustup.sh -y && \
-    pip install --upgrade pip && \
+RUN pip install --upgrade pip && \
     pip install -r requirements.txt && \
     pip install gunicorn
 

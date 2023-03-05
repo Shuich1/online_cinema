@@ -3,6 +3,7 @@ from typing import Optional
 
 from elasticsearch import NotFoundError
 from pydantic import BaseModel
+from src.core.trace_functions import traced
 from src.db.cache import Cache, get_cache
 from src.db.data_storage import DataStorage, get_data_storage
 
@@ -34,6 +35,7 @@ class BaseService(Service):
         self.cache = cache
         self.data_storage = data_storage
 
+    @traced
     async def _search(self,
                       index: str,
                       body: dict,
@@ -67,6 +69,7 @@ class BaseService(Service):
 
         return [model(**hit['_source']) for hit in hits]
 
+    @traced
     async def _get_data_from_storage(self,
                                      index: str,
                                      uuid: str,
@@ -77,6 +80,7 @@ class BaseService(Service):
             return None
         return model(**doc['_source'])
 
+    @traced
     async def _get_data_from_cache(self,
                                    name_id: str,
                                    uuid: str,
@@ -88,6 +92,7 @@ class BaseService(Service):
         data = model.parse_raw(cache_data)
         return data
 
+    @traced
     async def _put_data_to_cache(self,
                                  name_id: str,
                                  data: BaseModel):
