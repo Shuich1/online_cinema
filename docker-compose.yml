@@ -44,7 +44,7 @@ services:
       - .env
     healthcheck:
       test: [ "CMD-SHELL", "curl --silent ${ALLOWED_HOSTS}:${DJANGO_PORT} >/dev/null || exit 1" ]
-      interval: 5s
+      interval: 30s
       timeout: 5s
       retries: 5
     depends_on:
@@ -123,10 +123,10 @@ services:
     container_name: fastapi
     build: ./fastapi-solution
     healthcheck:
-      test: [ "CMD-SHELL", "curl --silent ${FASTAPI_HOST}:${FASTAPI_PORT}  >/dev/null || exit 1" ]
-      interval: 10s
-      timeout: 10s
-      retries: 10
+      test: [ "CMD-SHELL", "curl --silent ${FASTAPI_HOST}:${FASTAPI_PORT} -H 'X-Request-Id: healthcheck' >/dev/null || exit 1" ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
     env_file:
       - .env
     depends_on:
@@ -143,10 +143,10 @@ services:
     container_name: flask_auth
     build: ./auth-solution
     healthcheck:
-      test: [ "CMD-SHELL", "curl --silent ${FLASK_HOST}:${FLASK_PORT} >/dev/null || exit 1" ]
-      interval: 5m
-      timeout: 10s
-      retries: 10
+      test: [ "CMD-SHELL", "curl --silent ${FLASK_HOST}:${FLASK_PORT}/healthcheck -H 'X-Request-Id: healthcheck' >/dev/null || exit 1" ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
     env_file:
       - .env
     depends_on:

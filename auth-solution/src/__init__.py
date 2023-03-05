@@ -2,7 +2,8 @@ from flask import Flask, request
 from opentelemetry import trace
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
 from werkzeug.exceptions import HTTPException
-
+from http import HTTPStatus
+from flask import jsonify
 from .api.v1 import auth, roles
 from .core.config import settings
 from .services.database import db
@@ -12,6 +13,10 @@ from .utils.error_handler import handle_exception
 from .utils.extensions import jwt, migrate, security
 
 app = Flask(__name__)
+
+@app.route("/healthcheck")
+def healthcheck():
+    return jsonify("Service healthy"), HTTPStatus.OK
 
 # App configuration
 app.config['SECRET_KEY'] = settings.SECRET_KEY
@@ -28,17 +33,19 @@ app.register_error_handler(HTTPException, handle_exception)
 # Tracer configuration
 if settings.tracer.TRACER_ENABLED:
     configure_tracer()
-    FlaskInstrumentor().instrument_app(app)
+    FlaskInstrumentor().instrument_app(app, excluded_urls="healthcheck")
 
     @app.before_request
     def before_request():
         request_id = request.headers.get('X-Request-Id')
+
         if not request_id:
             raise RuntimeError('request id is required')
-        tracer = trace.get_tracer(__name__)
-        span = tracer.start_span('auth')
-        span.set_attribute('http.request_id', request_id)
-        span.end()
+
+        if request_id != "healthcheck":
+            tracer = trace.get_tracer(__name__)
+            with tracer.start_as_current_span('request-id-checking') as span:
+                span.set_attribute('http.request_id', request_id)
 
 # Database initialisation
 db.init_app(app)
