@@ -67,6 +67,8 @@ services:
         condition: service_healthy
       fastapi:
         condition: service_healthy
+      flask_auth:
+        condition: service_healthy
     ports:
       - "80:80"
 
@@ -75,6 +77,7 @@ services:
     image: elasticsearch:7.17.8
     environment:
       - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms2048m -Xmx2048m
     #    volumes:
     #      - ./elasticsearch-data:/usr/share/elasticsearch/data
     healthcheck:
@@ -122,10 +125,10 @@ services:
     container_name: fastapi
     build: ./fastapi-solution
     healthcheck:
-      test: [ "CMD-SHELL", "curl --silent ${FASTAPI_HOST}:${FASTAPI_PORT}  >/dev/null || exit 1" ]
-      interval: 10s
-      timeout: 10s
-      retries: 10
+      test: [ "CMD-SHELL", "curl --silent ${FASTAPI_HOST}:${FASTAPI_PORT} -H 'X-Request-Id: healthcheck' >/dev/null || exit 1" ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
     env_file:
       - .env
     depends_on:
@@ -142,10 +145,10 @@ services:
     container_name: flask_auth
     build: ./auth-solution
     healthcheck:
-      test: [ "CMD-SHELL", "curl --silent ${FLASK_HOST}:${FLASK_PORT} >/dev/null || exit 1" ]
-      interval: 10s
-      timeout: 10s
-      retries: 10
+      test: [ "CMD-SHELL", "curl --silent ${FLASK_HOST}:${FLASK_PORT}/healthcheck -H 'X-Request-Id: healthcheck' >/dev/null || exit 1" ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
     env_file:
       - .env
     depends_on:
@@ -155,9 +158,26 @@ services:
         condition: service_started
     expose:
       - "5000"
+  
+  jaeger:
+    container_name: jaeger
+    image: jaegertracing/all-in-one:1.42
+    environment:
+      - QUERY_BASE_PATH=/jaeger
+      - SPAN_STORAGE_TYPE=badger
+      - BADGER_EPHEMERAL=false
+      - BADGER_DIRECTORY_VALUE=/badger/data
+      - BADGER_DIRECTORY_KEY=/badger/key
+    volumes:
+      - jaeger_data:/badger
+    expose:
+      - "16686"
+      - "6831/udp"
+
 volumes:
   database:
   auth_database:
   static_volume:
   elasticsearch-data:
     driver: local
+  jaeger_data:

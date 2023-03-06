@@ -3,6 +3,13 @@ import os
 from pydantic import BaseSettings, Field
 
 
+class TracerSettings(BaseSettings):
+    TRACER_ENABLED: bool = Field(True, env='TRACER_ENABLED')
+    CONSOLE_TRACING_ENABLED: bool = Field(False, env='CONSOLE_TRACING_ENABLED')
+    TRACER_HOST: str = Field('localhost', env='TRACER_HOST')
+    TRACER_PORT: int = Field(6831, env='TRACER_PORT')
+
+
 class Settings(BaseSettings):
     redis_host: str = Field(..., env='REDIS_HOST')
     redis_port: int = Field(6379, env='REDIS_PORT')
@@ -18,6 +25,8 @@ class Settings(BaseSettings):
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     logging_level: str = Field('INFO', env='LOGGING_LEVEL')
+
+    tracer = TracerSettings()
     
     class Config:
         env_file = '.env'

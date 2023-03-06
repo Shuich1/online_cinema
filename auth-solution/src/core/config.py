@@ -9,6 +9,13 @@ class Database(BaseSettings):
     port: int = Field('5433', env='AUTH_POSTGRES_PORT')
 
 
+class TracerSettings(BaseSettings):
+    TRACER_ENABLED: bool = Field(True, env='TRACER_ENABLED')
+    CONSOLE_TRACING_ENABLED: bool = Field(False, env='CONSOLE_TRACING_ENABLED')
+    TRACER_HOST: str = Field('localhost', env='TRACER_HOST')
+    TRACER_PORT: int = Field(6831, env='TRACER_PORT')
+
+
 class Settings(BaseSettings):
     SECRET_KEY: str = Field(..., env='SECRET_KEY')
     FLASK_ADMIN_MAIL: str = Field(..., env='FLASK_ADMIN_MAIL')
@@ -22,6 +29,8 @@ class Settings(BaseSettings):
 
     pg_db = Database()
     SQLALCHEMY_DATABASE_URI: PostgresDsn = f'postgresql+psycopg2://{pg_db.user}:{pg_db.password}@{pg_db.host}:{pg_db.port}/{pg_db.db}'
+
+    tracer = TracerSettings()
 
 
 settings = Settings()

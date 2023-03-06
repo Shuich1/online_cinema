@@ -1,9 +1,7 @@
 from http import HTTPStatus
 
 import pytest
-
 from functional.testdata.users_data import invalid_refresh_token
-
 
 pytestmark = pytest.mark.asyncio
 

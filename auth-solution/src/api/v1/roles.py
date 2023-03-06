@@ -1,11 +1,14 @@
+from http import HTTPStatus
+
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from src.utils.extensions import user_datastore
-from http import HTTPStatus
+from src.utils.trace_functions import traced
 
 bp = Blueprint('roles', __name__, url_prefix='/roles')
 
 
+@traced
 def has_role(name: str) -> bool:
     """Функция проверки наличия роли у пользователя"""
     current_user = user_datastore.find_user(id=get_jwt_identity())

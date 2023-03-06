@@ -1,5 +1,6 @@
-from pydantic import BaseModel
 from faker import Faker
+from pydantic import BaseModel
+
 from ..settings import test_settings
 
 

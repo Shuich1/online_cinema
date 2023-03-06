@@ -1,14 +1,14 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from http import HTTPStatus
 
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import (create_access_token, create_refresh_token,
-                                get_jwt, get_jwt_identity, jwt_required,
-                                decode_token, current_user)
+from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required
 from flask_security.utils import hash_password, verify_password
 from src.models.auth_history import AuthHistory
 from src.services.redis import jwt_redis_blocklist, jwt_redis_refresh_tokens
-from src.utils.extensions import jwt, user_datastore
+from src.utils.extensions import (add_auth_history, create_tokens, jwt,
+                                  user_datastore)
+from src.utils.trace_functions import traced
 
 ACCESS_EXPIRES = timedelta(hours=1)
 
@@ -17,6 +17,7 @@ bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 
 @jwt.token_in_blocklist_loader
+@traced
 def check_if_token_is_revoked(jwt_header, jwt_payload: dict):
     jti = jwt_payload["jti"]
     token_in_redis = jwt_redis_blocklist.get(jti)
@@ -31,22 +32,15 @@ def signup():
     if user_datastore.find_user(email=email):
         return jsonify('Пользователь уже зарегистрирован'), HTTPStatus.CONFLICT
 
-    auth_history = AuthHistory(
-        user_agent=request.headers['User-Agent'],
-        host=request.headers['Host'],
-        auth_data=datetime.now(),
-    )
-
     new_user = user_datastore.create_user(
         email=email,
         password=hash_password(password),
     )
 
-    new_user.auth_history.append(auth_history)
+    new_user = add_auth_history(new_user, request)
     user_datastore.commit()
 
-    access_token = create_access_token(identity=new_user.id)
-    refresh_token = create_refresh_token(identity=new_user.id)
+    access_token, refresh_token = create_tokens(identity=new_user.id)
 
     jwt_redis_refresh_tokens.set(str(new_user.id), refresh_token)
 
@@ -72,17 +66,10 @@ def signin():
     if not verify_password(password, user.password):
         return jsonify('Неверный пароль'), HTTPStatus.UNAUTHORIZED
 
-    auth_history = AuthHistory(
-        user_agent=request.headers['User-Agent'],
-        host=request.headers['Host'],
-        auth_data=datetime.now(),
-    )
-
-    user.auth_history.append(auth_history)
+    user = add_auth_history(user, request)
     user_datastore.commit()
 
-    access_token = create_access_token(identity=user.id)
-    refresh_token = create_refresh_token(identity=user.id)
+    access_token, refresh_token = create_tokens(identity=user.id)
 
     jwt_redis_refresh_tokens.set(str(user.id), refresh_token)
 
@@ -100,8 +87,7 @@ def signin():
 def refresh_token():
     user_id = get_jwt_identity()
 
-    access_token = create_access_token(identity=user_id)
-    refresh_token = create_refresh_token(identity=user_id)
+    access_token, refresh_token = create_tokens(identity=user_id)
 
     jwt_redis_refresh_tokens.set(str(user_id), refresh_token)
 

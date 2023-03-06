@@ -36,7 +36,7 @@ services:
         env_file:
             - .env
         healthcheck:
-            test: [ "CMD-SHELL", "curl --silent ${FLASK_HOST}:${FLASK_PORT} > /dev/null || exit 1" ]
+            test: [ "CMD-SHELL", "curl --silent ${FLASK_HOST}:${FLASK_PORT}/healthcheck -H 'X-Request-Id: healthcheck'> /dev/null || exit 1" ]
             interval: 5s
             timeout: 5s
             retries: 5
@@ -58,3 +58,12 @@ services:
                 condition:
                     service_healthy
         entrypoint: pytest src -s
+    
+    jaeger:
+        container_name: jaeger_tests
+        image: jaegertracing/all-in-one:1.42
+        environment:
+        - QUERY_BASE_PATH=/jaeger
+        ports:
+        - "16686:16686"
+        - "6831:6831/udp"
