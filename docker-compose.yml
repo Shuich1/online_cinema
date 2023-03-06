@@ -44,7 +44,7 @@ services:
       - .env
     healthcheck:
       test: [ "CMD-SHELL", "curl --silent ${ALLOWED_HOSTS}:${DJANGO_PORT} >/dev/null || exit 1" ]
-      interval: 15s
+      interval: 5s
       timeout: 5s
       retries: 5
     depends_on:
@@ -164,6 +164,12 @@ services:
     image: jaegertracing/all-in-one:1.42
     environment:
       - QUERY_BASE_PATH=/jaeger
+      - SPAN_STORAGE_TYPE=badger
+      - BADGER_EPHEMERAL=false
+      - BADGER_DIRECTORY_VALUE=/badger/data
+      - BADGER_DIRECTORY_KEY=/badger/key
+    volumes:
+      - jaeger_data:/badger
     expose:
       - "16686"
       - "6831/udp"
@@ -174,3 +180,4 @@ volumes:
   static_volume:
   elasticsearch-data:
     driver: local
+  jaeger_data:
