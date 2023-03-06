@@ -44,7 +44,7 @@ services:
       - .env
     healthcheck:
       test: [ "CMD-SHELL", "curl --silent ${ALLOWED_HOSTS}:${DJANGO_PORT} >/dev/null || exit 1" ]
-      interval: 30s
+      interval: 15s
       timeout: 5s
       retries: 5
     depends_on:
@@ -66,6 +66,8 @@ services:
       django:
         condition: service_healthy
       fastapi:
+        condition: service_healthy
+      flask_auth:
         condition: service_healthy
     ports:
       - "80:80"
@@ -162,9 +164,9 @@ services:
     image: jaegertracing/all-in-one:1.42
     environment:
       - QUERY_BASE_PATH=/jaeger
-    ports:
-      - "16686:16686"
-      - "6831:6831/udp"
+    expose:
+      - "16686"
+      - "6831/udp"
 
 volumes:
   database:
