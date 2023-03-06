@@ -68,5 +68,43 @@ class YandexSignIn(OAuthSignIn):
         return (
             me['id'],
             'yandex',
+            me.get('default_email')
+        )
+
+
+class VKSignIn(OAuthSignIn):
+    def __init__(self):
+        super(VKSignIn, self).__init__('vk')
+        self.service = OAuth2Service(
+            name='TEST',
+            client_id=self.consumer_id,
+            client_secret=self.consumer_secret,
+            authorize_url='https://oauth.vk.com/authorize',
+            access_token_url='https://oauth.vk.com/access_token',
+            base_url='https://oauth.vk.com'
+        )
+
+    def authorize(self):
+        return redirect(self.service.get_authorize_url(
+            scope='email status',
+            response_type='code',
+            redirect_uri=self.get_callback_url(), v='5.131')
+        )
+
+    def callback(self):
+        def decode_json(payload):
+            return json.loads(payload.decode('utf-8'))
+
+        if 'code' not in request.args:
+            return None, None, None
+        oauth_session = self.service.get_auth_session(
+            data={'code': request.args['code'],
+                  'redirect_uri': self.get_callback_url()},
+            decoder=decode_json
+        )
+        me = oauth_session.service.access_token_response.json()
+        return (
+            me['user_id'],
+            'vk',
             me.get('email')
         )
