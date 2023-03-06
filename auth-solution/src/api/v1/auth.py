@@ -8,6 +8,7 @@ from src.models.auth_history import AuthHistory
 from src.services.redis import jwt_redis_blocklist, jwt_redis_refresh_tokens
 from src.utils.extensions import (add_auth_history, create_tokens, jwt,
                                   user_datastore)
+from src.utils.rate_limit import rate_limit
 from src.utils.trace_functions import traced
 
 ACCESS_EXPIRES = timedelta(hours=1)
@@ -17,7 +18,7 @@ bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 
 @jwt.token_in_blocklist_loader
-@traced
+@traced()
 def check_if_token_is_revoked(jwt_header, jwt_payload: dict):
     jti = jwt_payload["jti"]
     token_in_redis = jwt_redis_blocklist.get(jti)
@@ -25,6 +26,7 @@ def check_if_token_is_revoked(jwt_header, jwt_payload: dict):
 
 
 @bp.route('/signup', methods=['POST'])
+@rate_limit()
 def signup():
     email = request.json["email"]
     password = request.json["password"]
@@ -54,6 +56,7 @@ def signup():
 
 
 @bp.route('/signin', methods=['POST'])
+@rate_limit()
 def signin():
     email = request.json["email"]
     password = request.json["password"]
@@ -84,6 +87,7 @@ def signin():
 
 @bp.route('/refresh_token', methods=['POST'])
 @jwt_required(refresh=True)
+@rate_limit()
 def refresh_token():
     user_id = get_jwt_identity()
 
@@ -102,6 +106,7 @@ def refresh_token():
 
 @bp.route('/logout', methods=['GET'])
 @jwt_required()
+@rate_limit()
 def logout():
     jti = get_jwt()["jti"]
     jwt_redis_blocklist.set(jti, "", ex=ACCESS_EXPIRES)
@@ -110,6 +115,7 @@ def logout():
 
 @bp.route('/change', methods=['PUT'])
 @jwt_required()
+@rate_limit()
 def change():
     email = None
     password = None
@@ -135,6 +141,7 @@ def change():
 
 @bp.route('/history/<int:page>', methods=['GET'])
 @jwt_required()
+@rate_limit()
 def history(page=1):
     per_page = 10
     user_id = get_jwt_identity()
