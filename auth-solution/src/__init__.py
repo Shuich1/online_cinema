@@ -8,7 +8,6 @@ from werkzeug.exceptions import HTTPException
 from .api.v1 import auth, roles
 from .core.config import settings
 from .services.database import db
-from .services.tracer import configure_tracer
 from .utils.commands import commands
 from .utils.error_handler import handle_exception
 from .utils.extensions import jwt, migrate, security

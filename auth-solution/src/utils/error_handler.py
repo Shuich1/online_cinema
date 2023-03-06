@@ -1,7 +1,6 @@
 from flask import json
-from werkzeug.exceptions import HTTPException
-
 from opentelemetry import trace
+from werkzeug.exceptions import HTTPException
 
 
 def handle_exception(ex: HTTPException):
@@ -20,6 +19,6 @@ def handle_exception(ex: HTTPException):
         span.set_attribute('http.status', ex.code)
         span.set_attribute('http.error', ex.name)
         span.set_attribute('http.error_message', ex.description)
-        
+
     response.content_type = "application/json"
     return response

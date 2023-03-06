@@ -1,6 +1,7 @@
-from opentelemetry import trace
-from functools import wraps
 import asyncio
+from functools import wraps
+
+from opentelemetry import trace
 
 
 def traced(func):

@@ -2,16 +2,15 @@ import click
 from flask import Blueprint
 from flask_security.utils import hash_password
 from src.utils.extensions import user_datastore
-
-from .trace_functions import traced
+from src.utils.trace_functions import traced
 
 commands = Blueprint('commands', __name__)
 
 
-@traced
 @commands.cli.command('createsuperuser')
 @click.argument('email')
 @click.argument('password')
+@traced
 def createsuperuser(email, password):
     if not user_datastore.find_role(role='admin'):
         user_datastore.create_role(name='admin')
