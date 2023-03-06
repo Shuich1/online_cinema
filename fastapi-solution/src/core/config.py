@@ -5,6 +5,7 @@ from pydantic import BaseSettings, Field
 
 class TracerSettings(BaseSettings):
     TRACER_ENABLED: bool = Field(True, env='TRACER_ENABLED')
+    CONSOLE_TRACING_ENABLED: bool = Field(False, env='CONSOLE_TRACING_ENABLED')
     TRACER_HOST: str = Field('localhost', env='TRACER_HOST')
     TRACER_PORT: int = Field(6831, env='TRACER_PORT')
 

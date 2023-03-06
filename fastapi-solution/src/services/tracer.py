@@ -27,4 +27,5 @@ def configure_tracer() -> None:
             )
         )
     )
-    trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
+    if settings.tracer.CONSOLE_TRACING_ENABLED:
+        trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
