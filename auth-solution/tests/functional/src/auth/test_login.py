@@ -1,8 +1,7 @@
 from http import HTTPStatus
 
 import pytest
-
-from functional.testdata.users_data import unregistered_email, test_user
+from functional.testdata.users_data import test_user, unregistered_email
 
 pytestmark = pytest.mark.asyncio
 

@@ -1,7 +1,6 @@
 from http import HTTPStatus
 
 import pytest
-
 from functional.testdata.users_data import test_auth_history
 
 pytestmark = pytest.mark.asyncio

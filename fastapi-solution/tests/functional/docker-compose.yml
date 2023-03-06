@@ -11,7 +11,7 @@ services:
       redis_test:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD-SHELL", "curl --silent ${FASTAPI_URL}/api/v1/ > /dev/null || exit 1" ]
+      test: [ "CMD-SHELL", "curl --silent ${FASTAPI_URL} -H 'X-Request-Id: healthcheck' > /dev/null || exit 1" ]
       interval: 10s
       timeout: 10s
       retries: 10
@@ -23,6 +23,7 @@ services:
     image: elasticsearch:7.17.8
     environment:
       - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms2048m -Xmx2048m
     healthcheck:
       test: [ "CMD-SHELL", "curl --silent ${ES_TEST_URL}  >/dev/null || exit 1" ]
       interval: 10s
@@ -51,3 +52,12 @@ services:
       fastapi_test:
         condition: service_healthy
     entrypoint: pytest src
+
+  jaeger:
+    container_name: jaeger_tests
+    image: jaegertracing/all-in-one:1.42
+    environment:
+      - QUERY_BASE_PATH=/jaeger
+    ports:
+      - "16686:16686"
+      - "6831:6831/udp"

@@ -12,7 +12,10 @@ def make_get_request():
         async with aiohttp.ClientSession() as session:
             async with session.get(
                 test_settings.service_url + '/api/v1' + url,
-                params=params
+                params=params,
+                headers={
+                    'X-Request-Id': 'pytest'
+                }
             ) as response:
                 return {
                     'status': response.status,

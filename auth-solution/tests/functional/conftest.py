@@ -4,7 +4,10 @@ import aiohttp
 import pytest
 
 from .settings import test_settings
-from .testdata.users_data import test_user, superuser
+from .testdata.users_data import superuser, test_user
+
+
+pytestmark = pytest.mark.asyncio
 
 
 @pytest.fixture
@@ -25,7 +28,11 @@ def make_request():
                 test_settings.service_url + url,
                 json=payload,
                 params=params,
-                headers=headers
+                headers=headers | {
+                    'X-Request-Id': 'pytest'
+                } if headers else {
+                    'X-Request-Id': 'pytest'
+                }
             ) as response:
                 return {
                     'status': response.status,
@@ -36,7 +43,6 @@ def make_request():
 
 
 @pytest.fixture
-@pytest.mark.asyncio
 async def sign_in(make_request):
     response = await make_request(
         'POST',
@@ -51,7 +57,6 @@ async def sign_in(make_request):
 
 
 @pytest.fixture
-@pytest.mark.asyncio
 async def superuser_sign_in(make_request):
     response = await make_request(
         'POST',

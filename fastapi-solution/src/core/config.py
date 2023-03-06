@@ -8,6 +8,7 @@ class TracerSettings(BaseSettings):
     TRACER_HOST: str = Field('localhost', env='TRACER_HOST')
     TRACER_PORT: int = Field(6831, env='TRACER_PORT')
 
+
 class Settings(BaseSettings):
     redis_host: str = Field(..., env='REDIS_HOST')
     redis_port: int = Field(6379, env='REDIS_PORT')
