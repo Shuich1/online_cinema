@@ -18,14 +18,14 @@ security = Security(datastore=user_datastore)
 migrate = Migrate()
 
 
-@traced
+@traced()
 def create_tokens(identity: str) -> Tuple[str, str]:
     access_token = create_access_token(identity=identity)
     refresh_token = create_refresh_token(identity=identity)
     return access_token, refresh_token
 
 
-@traced
+@traced()
 def add_auth_history(user: User, request: Request) -> User:
     auth_history = AuthHistory(
         user_agent=request.headers['User-Agent'],

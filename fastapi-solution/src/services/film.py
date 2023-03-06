@@ -13,7 +13,7 @@ class FilmService(BaseService):
     def __init__(self, cache: Cache, data_storage: DataStorage):
         super().__init__(cache, data_storage)
 
-    @traced
+    @traced()
     async def get_all(self,
                       sort: Optional[str],
                       genre: Optional[str],
@@ -53,7 +53,7 @@ class FilmService(BaseService):
                                   model=Film,
                                   sort=sort)
 
-    @traced
+    @traced()
     async def search(self,
                      query: str,
                      page_number: Optional[int],
@@ -76,7 +76,7 @@ class FilmService(BaseService):
                                   size=size,
                                   model=Film)
 
-    @traced
+    @traced()
     async def get_by_id(self, uuid: str) -> Optional[Film]:
         data = await self._get_data_from_cache(name_id='film_id',
                                                uuid=uuid,

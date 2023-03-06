@@ -13,7 +13,7 @@ class GenreService(BaseService):
     def __init__(self, cache: Cache, data_storage: DataStorage):
         super().__init__(cache, data_storage)
 
-    @traced
+    @traced()
     async def get_all(self,
                       page_number: Optional[int],
                       size: Optional[int]) -> Optional[list[Genre]]:
@@ -28,7 +28,7 @@ class GenreService(BaseService):
                                   size=size,
                                   model=Genre)
 
-    @traced
+    @traced()
     async def get_by_id(self, uuid: str) -> Optional[Genre]:
         data = await self._get_data_from_cache(name_id='genre_id',
                                                uuid=uuid,
