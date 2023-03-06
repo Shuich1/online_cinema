@@ -42,8 +42,9 @@ def rate_limit(
             retry_after = 0
             if request_number > request_limit:
                 excess_requests = request_number - request_limit
-                retry_after = penalty * (2 ** (excess_requests % request_limit - 1))
+                retry_after = penalty * (2 ** (excess_requests - 1))
                 retry_after = retry_after if retry_after < max_penalty else max_penalty
+                print(excess_requests, retry_after)
 
                 pipeline.expire(key, retry_after)
 
