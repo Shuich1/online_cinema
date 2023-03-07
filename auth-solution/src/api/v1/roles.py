@@ -8,7 +8,7 @@ from src.utils.trace_functions import traced
 bp = Blueprint('roles', __name__, url_prefix='/roles')
 
 
-@traced
+@traced()
 def has_role(name: str) -> bool:
     """Функция проверки наличия роли у пользователя"""
     current_user = user_datastore.find_user(id=get_jwt_identity())

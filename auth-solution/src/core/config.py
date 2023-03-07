@@ -32,5 +32,8 @@ class Settings(BaseSettings):
 
     tracer = TracerSettings()
 
+    DEFAULT_RATE_LIMIT: int = Field(10, env='DEFAULT_RATE_LIMIT')
+    DEFAULT_RATE_PERIOD: int = Field(60, env='DEFAULT_RATE_PERIOD')
+    MAX_RATE_PENALTY: int = Field(1800, env='MAX_RATE_PENALTY')
 
 settings = Settings()

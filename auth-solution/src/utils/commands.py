@@ -10,7 +10,7 @@ commands = Blueprint('commands', __name__)
 @commands.cli.command('createsuperuser')
 @click.argument('email')
 @click.argument('password')
-@traced
+@traced()
 def createsuperuser(email, password):
     if not user_datastore.find_role(role='admin'):
         user_datastore.create_role(name='admin')
