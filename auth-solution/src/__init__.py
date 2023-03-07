@@ -25,6 +25,16 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = settings.SQLALCHEMY_DATABASE_URI
     app.config['SECURITY_TOKEN_AUTHENTICATION_HEADER'] = settings.SECURITY_TOKEN_AUTHENTICATION_HEADER
     app.config['SECURITY_PASSWORD_SALT'] = settings.SECURITY_PASSWORD_SALT
+    app.config['OAUTH_CREDENTIALS'] = {
+        'yandex': {
+            'id': settings.yandex_id,
+            'secret': settings.yandex_secret,
+        },
+        'vk': {
+            'id': settings.vk_id,
+            'secret': settings.vk_secret,
+        }
+    }
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(roles.bp)

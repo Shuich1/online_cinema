@@ -27,6 +27,12 @@ class Settings(BaseSettings):
     SECURITY_TOKEN_AUTHENTICATION_HEADER: str = Field(..., env='SECURITY_TOKEN_AUTHENTICATION_HEADER')
     SECURITY_PASSWORD_SALT: str = Field(..., env='SECURITY_PASSWORD_SALT')
 
+    yandex_id: str = Field(..., env='YANDEX_ID')
+    yandex_secret: str = Field(..., env='YANDEX_SECRET')
+
+    vk_id: str = Field(..., env='VK_ID')
+    vk_secret: str = Field(..., env='VK_SECRET')
+
     pg_db = Database()
     SQLALCHEMY_DATABASE_URI: PostgresDsn = f'postgresql+psycopg2://{pg_db.user}:{pg_db.password}@{pg_db.host}:{pg_db.port}/{pg_db.db}'
 
