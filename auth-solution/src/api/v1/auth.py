@@ -5,9 +5,11 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required
 from flask_security.utils import hash_password, verify_password
 from src.models.auth_history import AuthHistory
+from src.models.social_account import SocialAccount
 from src.services.redis import jwt_redis_blocklist, jwt_redis_refresh_tokens
+from src.services.oauth import OAuthSignIn
 from src.utils.extensions import (add_auth_history, create_tokens, jwt,
-                                  user_datastore)
+                                  user_datastore, generate_random_string)
 from src.utils.trace_functions import traced
 
 ACCESS_EXPIRES = timedelta(hours=1)
@@ -78,6 +80,57 @@ def signin():
     }
 
     response = jsonify({'refresh_token': refresh_token})
+
+    return response, HTTPStatus.OK, headers
+
+
+@bp.route('/authorize/<provider>', methods=['GET'])
+def oauth_authorize(provider):
+    oauth = OAuthSignIn.get_provider(provider)
+    return oauth.authorize()
+
+
+@bp.route('/revoke/<provider>', methods=['GET'])
+@jwt_required()
+def revoke(provider):
+    user_id = get_jwt_identity()
+    SocialAccount.query.filter_by(user_id=user_id, social_name=provider).delete()
+    return jsonify('provider revoked successfully'), HTTPStatus.OK
+
+
+@bp.route('/callback/<provider>', methods=['GET'])
+def oauth_callback(provider):
+    oauth = OAuthSignIn.get_provider(provider)
+    social_id, social_name, email = oauth.callback()
+    if social_id is None:
+        return jsonify('Authentication failed.'), HTTPStatus.UNAUTHORIZED
+    social_account = SocialAccount.query.filter_by(social_id=str(social_id), social_name=social_name).first()
+    if not social_account:
+        social_account = SocialAccount(social_id=str(social_id), social_name=social_name)
+        new_password = generate_random_string()
+
+        user = user_datastore.find_user(email=email)
+        if not user:
+            user = user_datastore.create_user(
+                email=email,
+                password=hash_password(new_password),
+            )
+        user.social_account.append(social_account)
+        user_datastore.commit()
+    else:
+        user = user_datastore.find_user(id=social_account.user_id)
+
+    access_token, refresh_token = create_tokens(identity=user.id)
+
+    jwt_redis_refresh_tokens.set(str(user.id), refresh_token)
+
+    headers = {
+        'Authorization': f'Bearer {access_token}'
+    }
+
+    response = jsonify({
+        'refresh_token': refresh_token
+    })
 
     return response, HTTPStatus.OK, headers
 

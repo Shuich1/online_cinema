@@ -27,12 +27,12 @@ def create_app():
     app.config['SECURITY_PASSWORD_SALT'] = settings.SECURITY_PASSWORD_SALT
     app.config['OAUTH_CREDENTIALS'] = {
         'yandex': {
-            'id': '24378b79b51549d385640fc52a50aeb6',
-            'secret': '52188f5496fe405390589a9883802b8f',
+            'id': settings.yandex_id,
+            'secret': settings.yandex_secret,
         },
         'vk': {
-            'id': '51573011',
-            'secret': 'eRuDpLClzVBXkViO9CMC',
+            'id': settings.vk_id,
+            'secret': settings.vk_secret,
         }
     }
 

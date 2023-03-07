@@ -8,8 +8,7 @@ class SocialAccount(db.Model):
     __tablename__ = 'social_account'
 
     id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
-    user_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.id'), nullable=False)
-    user = db.relationship(User, backref=db.backref('social_accounts', lazy=True))
+    user_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('user.id'), nullable=False)
 
     social_id = db.Column(db.Text, nullable=False)
     social_name = db.Column(db.Text, nullable=False)
