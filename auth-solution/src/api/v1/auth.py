@@ -88,6 +88,7 @@ def signin():
 
 
 @bp.route('/authorize/<provider>', methods=['GET'])
+@rate_limit()
 def oauth_authorize(provider):
     oauth = OAuthSignIn.get_provider(provider)
     return oauth.authorize()
@@ -95,6 +96,7 @@ def oauth_authorize(provider):
 
 @bp.route('/revoke/<provider>', methods=['GET'])
 @jwt_required()
+@rate_limit()
 def revoke(provider):
     user_id = get_jwt_identity()
     SocialAccount.query.filter_by(user_id=user_id, social_name=provider).delete()
@@ -102,6 +104,7 @@ def revoke(provider):
 
 
 @bp.route('/callback/<provider>', methods=['GET'])
+@rate_limit()
 def oauth_callback(provider):
     oauth = OAuthSignIn.get_provider(provider)
     social_id, social_name, email = oauth.callback()
