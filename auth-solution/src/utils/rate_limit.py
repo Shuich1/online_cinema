@@ -10,15 +10,15 @@ from src.utils.trace_functions import traced
 
 def rate_limit(
     request_limit=settings.DEFAULT_RATE_LIMIT,
-    penalty=settings.DEFAULT_RATE_PENALTY,
+    period=settings.DEFAULT_RATE_PERIOD,
     max_penalty=settings.MAX_RATE_PENALTY
 ):
     """A decorator that limits the rate of requests to a Flask route using Redis.
     The decorator uses an exponential growth of expiring time after each request that exceeds the set rate limit.
 
     Args:
-        request_limit (int): The maximum number of requests that a client can make within the rate limit penalty.
-        penalty (int): The duration of the rate limit penalty in seconds.
+        request_limit (int): The maximum number of requests that a client can make within the rate limit period.
+        period (int): The duration of the rate limit period in seconds.
         max_penalty(int): Maximum duration of the rate limit penalty in seconds.
 
     Returns:
@@ -32,21 +32,20 @@ def rate_limit(
             pipeline = redis_rate_limit.pipeline()
             key = f"{request.remote_addr}:{request.path}"
             pipeline.incr(key, 1)
-            pipeline.expire(key, penalty)
+            pipeline.expire(key, period)
 
             try:
                 request_number = pipeline.execute()[0]
             except redis.exceptions.RedisError:
                 return jsonify(msg=f"Redis error"), HTTPStatus.INTERNAL_SERVER_ERROR
 
-            retry_after = 0
+            penalty = 0
             if request_number > request_limit:
                 excess_requests = request_number - request_limit
-                retry_after = penalty * (2 ** (excess_requests - 1))
-                retry_after = retry_after if retry_after < max_penalty else max_penalty
-                print(excess_requests, retry_after)
+                penalty = period * (2 ** (excess_requests - 1))
+                penalty = penalty if penalty < max_penalty else max_penalty
 
-                pipeline.expire(key, retry_after)
+                pipeline.expire(key, penalty)
 
                 try:
                     pipeline.execute()
@@ -55,7 +54,7 @@ def rate_limit(
 
                 return jsonify(
                     msg="Too many requests",
-                    retry_after=retry_after
+                    retry_after=penalty
                 ), HTTPStatus.TOO_MANY_REQUESTS
 
             return func(*args, **kwargs)
