@@ -14,3 +14,10 @@ jwt_redis_refresh_tokens = redis.StrictRedis(
     db=1,
     decode_responses=True
 )
+
+redis_rate_limit = redis.StrictRedis(
+    host=settings.AUTH_REDIS_HOST,
+    port=settings.AUTH_REDIS_PORT,
+    db=2,
+    decode_responses=True
+)

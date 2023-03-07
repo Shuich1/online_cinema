@@ -35,7 +35,7 @@ class BaseService(Service):
         self.cache = cache
         self.data_storage = data_storage
 
-    @traced
+    @traced("Base service search function")
     async def _search(self,
                       index: str,
                       body: dict,
@@ -69,7 +69,7 @@ class BaseService(Service):
 
         return [model(**hit['_source']) for hit in hits]
 
-    @traced
+    @traced("Base service get data from storage function")
     async def _get_data_from_storage(self,
                                      index: str,
                                      uuid: str,
@@ -80,7 +80,7 @@ class BaseService(Service):
             return None
         return model(**doc['_source'])
 
-    @traced
+    @traced("Base service get data from cache function")
     async def _get_data_from_cache(self,
                                    name_id: str,
                                    uuid: str,
@@ -92,7 +92,7 @@ class BaseService(Service):
         data = model.parse_raw(cache_data)
         return data
 
-    @traced
+    @traced("Base service put data to cache function")
     async def _put_data_to_cache(self,
                                  name_id: str,
                                  data: BaseModel):

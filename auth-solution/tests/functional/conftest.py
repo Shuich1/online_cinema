@@ -6,7 +6,6 @@ import pytest
 from .settings import test_settings
 from .testdata.users_data import superuser, test_user
 
-
 pytestmark = pytest.mark.asyncio
 
 

@@ -14,7 +14,7 @@ class PersonService(BaseService):
     def __init__(self, cache: Cache, data_storage: DataStorage):
         super().__init__(cache, data_storage)
 
-    @traced
+    @traced()
     async def get_all(self,
                       page_number: Optional[int],
                       size: Optional[int]
@@ -30,7 +30,7 @@ class PersonService(BaseService):
                                   size=size,
                                   model=Person)
 
-    @traced
+    @traced()
     async def search(self,
                      query: str,
                      page_number: Optional[int],
@@ -52,7 +52,7 @@ class PersonService(BaseService):
                                   size=size,
                                   model=Person)
 
-    @traced
+    @traced()
     async def get_by_id(self, uuid: str) -> Optional[Person]:
         data = await self._get_data_from_cache(name_id='person_id',
                                                uuid=uuid,
@@ -68,7 +68,7 @@ class PersonService(BaseService):
 
         return data
 
-    @traced
+    @traced()
     async def get_films_by_id(self, person_id: str) -> Optional[list[dict]]:
         films = FilmService(self.cache, self.data_storage)
         person = await self.get_by_id(person_id)
