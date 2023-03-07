@@ -16,6 +16,12 @@ class TracerSettings(BaseSettings):
     TRACER_PORT: int = Field(6831, env='TRACER_PORT')
 
 
+class CaptchaSettings(BaseSettings):
+    RECAPTCHA_ENABLED: bool = Field(True, env='RECAPTCHA_ENABLED')
+    RECAPTCHA_SECRET_KEY: str = Field(..., env='RECAPTCHA_SECRET_KEY')
+    RECAPTCHA_SITE_KEY:str = Field(..., env='RECAPTCHA_SITE_KEY')
+
+
 class Settings(BaseSettings):
     SECRET_KEY: str = Field(..., env='SECRET_KEY')
     FLASK_ADMIN_MAIL: str = Field(..., env='FLASK_ADMIN_MAIL')
@@ -41,5 +47,7 @@ class Settings(BaseSettings):
     DEFAULT_RATE_LIMIT: int = Field(10, env='DEFAULT_RATE_LIMIT')
     DEFAULT_RATE_PERIOD: int = Field(60, env='DEFAULT_RATE_PERIOD')
     MAX_RATE_PENALTY: int = Field(1800, env='MAX_RATE_PENALTY')
+
+    reCAPTCHA = CaptchaSettings()
 
 settings = Settings()
