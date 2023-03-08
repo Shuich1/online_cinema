@@ -3,12 +3,15 @@ import uuid
 
 from flask_security import UserMixin
 from src.services.database import db
+from src.core.config import db_config
 
 from .user_roles import RolesUsers
 
 
 class User(db.Model, UserMixin):
     __tablename__ = 'user'
+    __table_args__ = {'schema': db_config.db}
+
     id = db.Column(
         db.UUID(as_uuid=True),
         primary_key=True,
@@ -24,6 +27,6 @@ class User(db.Model, UserMixin):
     roles = db.relationship(
         'Role',
         secondary='roles_users',
-        backref=db.backref('users', lazy='dynamic')
+        back_populates='user'
     )
-    auth_history = db.relationship("AuthHistory", backref="user")
+    auth_history = db.relationship('AuthHistory', backref='user')

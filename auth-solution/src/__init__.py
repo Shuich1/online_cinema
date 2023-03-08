@@ -3,10 +3,11 @@ from http import HTTPStatus
 from flask import Flask, jsonify, request
 from opentelemetry import trace
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
+from sqlalchemy import text
 from werkzeug.exceptions import HTTPException
 
 from .api.v1 import auth, roles
-from .core.config import settings
+from .core.config import settings, db_config
 from .services.database import db
 from .utils.commands import commands
 from .utils.error_handler import handle_exception
@@ -53,8 +54,10 @@ def create_app():
     migrate.init_app(app, db)
 
     with app.app_context():
+        db.session.execute(text(f'CREATE SCHEMA IF NOT EXISTS {db_config.db};'))
+        db.session.commit()
         app.logger.info('initialised database.')
-        db.create_all()
+        # db.create_all()
         security.init_app(app)
         jwt.init_app(app)
 
