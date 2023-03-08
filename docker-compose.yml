@@ -140,6 +140,8 @@ services:
         condition: service_started
     expose:
       - "80"
+    volumes:
+      - ./schema/user.json:/opt/fastapi/user.json:ro
     
   flask_auth:
     container_name: flask_auth
