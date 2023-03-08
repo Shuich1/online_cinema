@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     vk_id: str = Field(..., env='VK_ID')
     vk_secret: str = Field(..., env='VK_SECRET')
 
+    host_fast_api: str = Field(..., env='HOST_FAST_API')
+
     pg_db = Database()
     SQLALCHEMY_DATABASE_URI: PostgresDsn = f'postgresql+psycopg2://{pg_db.user}:{pg_db.password}@{pg_db.host}:{pg_db.port}/{pg_db.db}'
 

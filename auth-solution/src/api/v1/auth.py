@@ -9,7 +9,7 @@ from src.models.social_account import SocialAccount
 from src.services.redis import jwt_redis_blocklist, jwt_redis_refresh_tokens
 from src.services.oauth import OAuthSignIn
 from src.utils.extensions import (add_auth_history, create_tokens, jwt,
-                                  user_datastore, generate_random_string)
+                                  user_datastore, generate_random_string, send_user_info)
 from src.utils.rate_limit import rate_limit
 from src.utils.trace_functions import traced
 
@@ -54,6 +54,9 @@ def signup():
 
     response = jsonify({'refresh_token': refresh_token})
 
+    # Отправляем в movies api информацию по группам пользователя
+    send_user_info(new_user, headers)
+
     return response, HTTPStatus.CREATED, headers
 
 
@@ -83,6 +86,9 @@ def signin():
     }
 
     response = jsonify({'refresh_token': refresh_token})
+
+    # Отправляем в movies api информацию по группам пользователя
+    send_user_info(user, headers)
 
     return response, HTTPStatus.OK, headers
 
@@ -137,6 +143,9 @@ def oauth_callback(provider):
     response = jsonify({
         'refresh_token': refresh_token
     })
+
+    # Отправляем в movies api информацию по группам пользователя
+    send_user_info(user, headers)
 
     return response, HTTPStatus.OK, headers
 

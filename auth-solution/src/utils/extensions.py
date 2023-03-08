@@ -3,7 +3,8 @@ from datetime import datetime
 from typing import Tuple
 from secrets import choice as secrets_choice
 
-from flask import Request
+import requests
+from flask import Request, current_app
 from flask_jwt_extended import (JWTManager, create_access_token,
                                 create_refresh_token)
 from flask_migrate import Migrate
@@ -44,3 +45,14 @@ def add_auth_history(user: User, request: Request) -> User:
 def generate_random_string():
     alphabet = string.ascii_letters + string.digits
     return ''.join(secrets_choice(alphabet) for _ in range(16))
+
+
+@traced()
+def send_user_info(user: User, headers):
+    info = dict(
+        pk=user.id,
+        roles=[role.name for role in user.roles]
+    )
+    movies_api = current_app.config['HOST_MOVIES_API']
+
+    requests.post(f'{movies_api}/api/v1/signin', data=info, headers=headers)
