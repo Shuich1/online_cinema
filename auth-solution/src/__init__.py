@@ -67,7 +67,6 @@ def create_app():
         db.session.execute(text(f'CREATE SCHEMA IF NOT EXISTS {db_config.db};'))
         db.session.commit()
         app.logger.info('initialised database.')
-        # db.create_all()
         security.init_app(app)
         jwt.init_app(app)
 
