@@ -44,3 +44,6 @@ class User(db.Model, UserMixin):
     )
     auth_history = db.relationship('AuthHistory', backref='user')
     social_account = db.relationship("SocialAccount", backref="user")
+
+    def __repr__(self):
+        return f'<User {self.id}:{self.email}>'

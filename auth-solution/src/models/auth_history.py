@@ -43,4 +43,4 @@ class AuthHistory(db.Model):
     user_device_type = db.Column(db.Text, primary_key=True)
 
     def __repr__(self):
-        return f'<UserSignIn {self.user_id}:{self.auth_date}>'
+        return f'<AuthHistory {self.user_id}:{self.auth_date}>'

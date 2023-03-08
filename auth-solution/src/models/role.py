@@ -25,3 +25,6 @@ class Role(db.Model, RoleMixin):
     )
     name = db.Column(db.String(80), unique=True)
     created = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+    def __repr__(self):
+        return f'<Role {self.id}:{self.name}>'
