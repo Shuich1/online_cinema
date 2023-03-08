@@ -43,3 +43,4 @@ class User(db.Model, UserMixin):
         backref=db.backref('user', lazy='dynamic')
     )
     auth_history = db.relationship('AuthHistory', backref='user')
+    social_account = db.relationship("SocialAccount", backref="user")

@@ -1,5 +1,7 @@
+import string
 from datetime import datetime
 from typing import Tuple
+from secrets import choice as secrets_choice
 
 from flask import Request
 from flask_jwt_extended import (JWTManager, create_access_token,
@@ -48,3 +50,9 @@ def add_auth_history(user: User, request: Request) -> User:
     user.auth_history.append(auth_history)
 
     return user
+
+
+@traced()
+def generate_random_string():
+    alphabet = string.ascii_letters + string.digits
+    return ''.join(secrets_choice(alphabet) for _ in range(16))
