@@ -1,11 +1,11 @@
 import string
 from datetime import datetime
-from typing import Tuple
 from secrets import choice as secrets_choice
+from typing import Tuple
 
 import requests
 from flask import Request, current_app
-from flask_jwt_extended import (JWTManager, create_access_token,
+from flask_jwt_extended import (create_access_token,
                                 create_refresh_token)
 from flask_migrate import Migrate
 from flask_security import Security, SQLAlchemyUserDatastore
@@ -15,7 +15,6 @@ from src.models.user import User
 from src.services.database import db
 from src.utils.trace_functions import traced
 
-jwt = JWTManager()
 user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 security = Security(datastore=user_datastore)
 migrate = Migrate()
@@ -50,9 +49,15 @@ def generate_random_string():
 @traced()
 def send_user_info(user: User, headers):
     info = dict(
-        pk=user.id,
+        pk=str(user.id),
         roles=[role.name for role in user.roles]
     )
     movies_api = current_app.config['HOST_MOVIES_API']
 
-    requests.post(f'{movies_api}/api/v1/signin', data=info, headers=headers)
+    requests.post(
+        f'{movies_api}/api/v1/signin/',
+        json=info,
+        headers=headers | {
+            'X-Request-Id': 'auth-request'
+        }
+    )

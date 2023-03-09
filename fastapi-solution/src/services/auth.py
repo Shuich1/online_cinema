@@ -39,7 +39,7 @@ class AuthService:
     async def validate_header(self, header):
         access_token = header.split(" ")[1]
         try:
-            print(jwt.decode(access_token, settings.jwt_secret_key, algorithms=['HS256']))
+            jwt.decode(access_token, settings.jwt_secret_key, algorithms=['HS256'])
         except InvalidTokenError:
             raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED)
         
