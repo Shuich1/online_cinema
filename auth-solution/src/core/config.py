@@ -48,6 +48,9 @@ class Settings(BaseSettings):
     DEFAULT_RATE_PERIOD: int = Field(60, env='DEFAULT_RATE_PERIOD')
     MAX_RATE_PENALTY: int = Field(1800, env='MAX_RATE_PENALTY')
 
+
     reCAPTCHA = CaptchaSettings()
 
+
 settings = Settings()
+db_config = Database()

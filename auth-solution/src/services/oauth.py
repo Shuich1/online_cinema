@@ -2,6 +2,7 @@ import json
 
 from rauth import OAuth2Service
 from flask import current_app, request, redirect, url_for
+from src.utils.trace_functions import traced
 
 
 class OAuthSignIn:
@@ -19,6 +20,7 @@ class OAuthSignIn:
     def callback(self):
         pass
 
+    @traced()
     def get_callback_url(self):
         return url_for('auth.oauth_callback', provider=self.provider_name,
                        _external=True)
@@ -45,6 +47,7 @@ class YandexSignIn(OAuthSignIn):
             base_url='https://oauth.yandex.ru/'
         )
 
+    @traced()
     def authorize(self):
         return redirect(self.service.get_authorize_url(
             scope='login:email login:info',
@@ -52,6 +55,7 @@ class YandexSignIn(OAuthSignIn):
             redirect_uri=self.get_callback_url())
         )
 
+    @traced()
     def callback(self):
         def decode_json(payload):
             return json.loads(payload.decode('utf-8'))
@@ -84,6 +88,7 @@ class VKSignIn(OAuthSignIn):
             base_url='https://oauth.vk.com'
         )
 
+    @traced()
     def authorize(self):
         return redirect(self.service.get_authorize_url(
             scope='email status',
@@ -91,6 +96,7 @@ class VKSignIn(OAuthSignIn):
             redirect_uri=self.get_callback_url(), v='5.131')
         )
 
+    @traced()
     def callback(self):
         def decode_json(payload):
             return json.loads(payload.decode('utf-8'))
