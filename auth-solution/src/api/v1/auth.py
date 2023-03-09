@@ -1,15 +1,16 @@
 from datetime import timedelta
 from http import HTTPStatus
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, render_template_string
 from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required
 from flask_security.utils import hash_password, verify_password
 from src.models.auth_history import AuthHistory
 from src.models.social_account import SocialAccount
-from src.services.redis import jwt_redis_blocklist, jwt_redis_refresh_tokens
 from src.services.oauth import OAuthSignIn
-from src.utils.extensions import (add_auth_history, create_tokens, jwt,
-                                  user_datastore, generate_random_string)
+from src.services.redis import jwt_redis_blocklist, jwt_redis_refresh_tokens
+from src.utils.captcha import require_recaptcha
+from src.utils.extensions import (add_auth_history, create_tokens,
+                                  generate_random_string, jwt, user_datastore)
 from src.utils.rate_limit import rate_limit
 from src.utils.trace_functions import traced
 
@@ -28,6 +29,7 @@ def check_if_token_is_revoked(jwt_header, jwt_payload: dict):
 
 
 @bp.route('/signup', methods=['POST'])
+@require_recaptcha
 @rate_limit()
 def signup():
     email = request.json["email"]
@@ -58,6 +60,7 @@ def signup():
 
 
 @bp.route('/signin', methods=['POST'])
+@require_recaptcha
 @rate_limit()
 def signin():
     email = request.json["email"]
