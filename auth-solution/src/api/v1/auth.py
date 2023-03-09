@@ -6,25 +6,18 @@ from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required
 from flask_security.utils import hash_password, verify_password
 from src.models.auth_history import AuthHistory
 from src.models.social_account import SocialAccount
-from src.services.redis import jwt_redis_blocklist, jwt_redis_refresh_tokens
 from src.services.oauth import OAuthSignIn
-from src.utils.extensions import (add_auth_history, create_tokens, jwt,
-                                  user_datastore, generate_random_string, send_user_info)
+from src.services.redis import jwt_redis_blocklist, jwt_redis_refresh_tokens
+from src.utils.extensions import (add_auth_history, create_tokens,
+                                  generate_random_string, send_user_info,
+                                  user_datastore)
 from src.utils.rate_limit import rate_limit
-from src.utils.trace_functions import traced
+
 
 ACCESS_EXPIRES = timedelta(hours=1)
 
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
-
-
-@jwt.token_in_blocklist_loader
-@traced()
-def check_if_token_is_revoked(jwt_header, jwt_payload: dict):
-    jti = jwt_payload["jti"]
-    token_in_redis = jwt_redis_blocklist.get(jti)
-    return token_in_redis is not None
 
 
 @bp.route('/signup', methods=['POST'])

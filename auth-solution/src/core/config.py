@@ -18,6 +18,7 @@ class TracerSettings(BaseSettings):
 
 class Settings(BaseSettings):
     SECRET_KEY: str = Field(..., env='SECRET_KEY')
+    JWT_SECRET_KEY: str = Field(..., env='JWT_SECRET_KEY')
     FLASK_ADMIN_MAIL: str = Field(..., env='FLASK_ADMIN_MAIL')
     FLASK_ADMIN_PASS: str = Field(..., env='FLASK_ADMIN_PASS')
 

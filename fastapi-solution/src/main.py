@@ -63,6 +63,7 @@ async def startup():
 async def shutdown():
     await cache.cache.close()
     await data_storage.data_storage.close()
+    await auth_storage.auth_storage.close()
 
 
 app.include_router(films.router, prefix='/api/v1/films', tags=['films'])
