@@ -1,6 +1,7 @@
 import uuid
 
 from src.services.database import db
+
 from .user import User
 
 

@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
-from src.utils.extensions import user_datastore, send_user_info
+from src.utils.extensions import send_user_info, user_datastore
 from src.utils.trace_functions import traced
 
 bp = Blueprint('roles', __name__, url_prefix='/roles')

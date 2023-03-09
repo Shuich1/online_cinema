@@ -1,7 +1,7 @@
 import json
 
+from flask import current_app, redirect, request, url_for
 from rauth import OAuth2Service
-from flask import current_app, request, redirect, url_for
 from src.utils.trace_functions import traced
 
 
