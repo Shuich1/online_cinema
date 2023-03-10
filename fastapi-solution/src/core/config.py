@@ -26,6 +26,8 @@ class Settings(BaseSettings):
 
     logging_level: str = Field('INFO', env='LOGGING_LEVEL')
 
+    jwt_secret_key: str = Field(..., env='JWT_SECRET_KEY')
+
     tracer = TracerSettings()
     
     class Config:

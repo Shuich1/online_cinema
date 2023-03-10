@@ -3,9 +3,9 @@ from http import HTTPStatus
 
 import redis
 from flask import jsonify, request
+from opentelemetry import trace
 from src.core.config import settings
 from src.services.redis import redis_rate_limit
-from opentelemetry import trace
 
 
 def rate_limit(
