@@ -4,9 +4,9 @@ from fastapi.responses import ORJSONResponse
 from opentelemetry import trace
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
-from .api.v1 import auth, films, genre, person
+from .api.v1 import films, genre, person
 from .core.config import settings
-from .db import auth_storage, cache, data_storage
+from .db import cache, data_storage
 from .services.tracer import configure_tracer
 
 app = FastAPI(
@@ -51,22 +51,13 @@ async def startup():
         elastic=[f'{settings.elastic_host}:{settings.elastic_port}']
     )
 
-    auth_storage.auth_storage = auth_storage.RedisAuthStorage(
-        redis=await aioredis.create_redis_pool(
-            (settings.redis_host, settings.redis_port),
-            db=0
-        )
-    )
-
 
 @app.on_event('shutdown')
 async def shutdown():
     await cache.cache.close()
     await data_storage.data_storage.close()
-    await auth_storage.auth_storage.close()
 
 
 app.include_router(films.router, prefix='/api/v1/films', tags=['films'])
 app.include_router(genre.router, prefix='/api/v1/genres', tags=['genres'])
 app.include_router(person.router, prefix='/api/v1/persons', tags=['persons'])
-app.include_router(auth.router, prefix='/api/v1/signin', tags=['auth'])

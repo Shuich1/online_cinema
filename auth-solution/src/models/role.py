@@ -3,8 +3,8 @@ import uuid
 from dataclasses import dataclass
 
 from flask_security import RoleMixin
-from src.services.database import db
-from src.core.config import db_config
+from ..services.database import db
+from ..core.config import db_config
 
 
 @dataclass

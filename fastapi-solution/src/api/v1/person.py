@@ -4,8 +4,10 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from src.models.person import Person
 from src.services.person import PersonService, get_person_service
+from ...services.jwt_handler import JWTBearer
 
 router = APIRouter()
+jwt_bearer = JWTBearer(auto_error=False)
 
 
 @router.get(
@@ -16,6 +18,7 @@ router = APIRouter()
 )
 async def persons_search(
     person_service: PersonService = Depends(get_person_service),
+    jwt_data: JWTBearer = Depends(jwt_bearer),
     query: str = Query(
         default=None,
         description='Person search query',
@@ -37,6 +40,7 @@ async def persons_search(
             status_code=HTTPStatus.NOT_FOUND,
             detail='Search query is missing'
         )
+    user_roles = jwt_data['roles']
     results = await person_service.search(query, page, size)
     if not results:
         raise HTTPException(
@@ -54,8 +58,10 @@ async def persons_search(
     )
 async def person_details(
     person_id: str,
-    person_service: PersonService = Depends(get_person_service)
+    person_service: PersonService = Depends(get_person_service),
+    jwt_data: JWTBearer = Depends(jwt_bearer),
 ) -> Person:
+    user_roles = jwt_data['roles']
     person = await person_service.get_by_id(person_id)
     if not person:
         raise HTTPException(
@@ -74,8 +80,10 @@ async def person_details(
     )
 async def person_films(
     person_id: str,
-    person_service: PersonService = Depends(get_person_service)
+    person_service: PersonService = Depends(get_person_service),
+    jwt_data: JWTBearer = Depends(jwt_bearer)
 ) -> list[dict]:
+    user_roles = jwt_data['roles']
     films = await person_service.get_films_by_id(person_id)
     if not films:
         raise HTTPException(
@@ -94,6 +102,7 @@ async def person_films(
 )
 async def persons(
     person_service: PersonService = Depends(get_person_service),
+    jwt_data: JWTBearer = Depends(jwt_bearer),
     page: Optional[int] = Query(
         default=1,
         description='Page number of results',
@@ -105,6 +114,7 @@ async def persons(
         alias='size'
     )
 ) -> list[Person]:
+    user_roles = jwt_data['roles']
     results = await person_service.get_all(page, size)
     if not results:
         raise HTTPException(

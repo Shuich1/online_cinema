@@ -1,5 +1,5 @@
 import redis
-from src.core.config import settings
+from ..core.config import settings
 
 jwt_redis_blocklist = redis.StrictRedis(
     host=settings.AUTH_REDIS_HOST,

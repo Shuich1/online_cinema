@@ -1,8 +1,8 @@
 import click
 from flask import Blueprint
 from flask_security.utils import hash_password
-from src.utils.extensions import user_datastore
-from src.utils.trace_functions import traced
+from ..utils.extensions import user_datastore
+from ..utils.trace_functions import traced
 
 commands = Blueprint('commands', __name__)
 

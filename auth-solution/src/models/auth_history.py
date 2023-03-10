@@ -3,8 +3,8 @@ import uuid
 from sqlalchemy import UniqueConstraint, ForeignKeyConstraint
 from dataclasses import dataclass
 
-from src.services.database import db
-from src.core.config import db_config
+from ..services.database import db
+from ..core.config import db_config
 
 
 @dataclass
