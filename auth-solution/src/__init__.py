@@ -32,11 +32,11 @@ def create_app():
     app.config['SECURITY_PASSWORD_SALT'] = settings.SECURITY_PASSWORD_SALT
     app.config['HOST_MOVIES_API'] = settings.host_fast_api
     app.config['OAUTH_CREDENTIALS'] = {
-        'yandex': {
+        'YANDEX': {
             'id': settings.yandex_id,
             'secret': settings.yandex_secret,
         },
-        'vk': {
+        'VK': {
             'id': settings.vk_id,
             'secret': settings.vk_secret,
         }

@@ -1,43 +1,54 @@
 import json
+import typing
+from enum import Enum, unique, auto
 
 from flask import current_app, redirect, request, url_for
 from rauth import OAuth2Service
 from src.utils.trace_functions import traced
 
+if typing.TYPE_CHECKING:
+    from werkzeug.wrappers import Response as BaseResponse
+
+
+@unique
+class Provider(Enum):
+    YANDEX = auto()
+    YK = auto()
+
 
 class OAuthSignIn:
     providers = None
 
-    def __init__(self, provider_name):
-        self.provider_name = provider_name
-        credentials = current_app.config['OAUTH_CREDENTIALS'][provider_name]
+    def __init__(self, provider: Provider):
+        self.provider_name = provider.name
+        credentials = current_app.config['OAUTH_CREDENTIALS'][self.provider_name]
         self.consumer_id = credentials['id']
         self.consumer_secret = credentials['secret']
 
-    def authorize(self):
+    def authorize(self) -> "BaseResponse":
         pass
 
-    def callback(self):
+    def callback(self) -> tuple:
         pass
 
     @traced()
-    def get_callback_url(self):
+    def get_callback_url(self) -> str:
         return url_for('auth.oauth_callback', provider=self.provider_name,
                        _external=True)
 
     @classmethod
-    def get_provider(cls, provider_name):
+    def get_provider(cls, provider_name: str) -> 'OAuthSignIn':
         if cls.providers is None:
             cls.providers = {}
             for provider_class in cls.__subclasses__():
                 provider = provider_class()
                 cls.providers[provider.provider_name] = provider
-        return cls.providers[provider_name]
+        return cls.providers[provider_name.upper()]
 
 
 class YandexSignIn(OAuthSignIn):
     def __init__(self):
-        super(YandexSignIn, self).__init__('yandex')
+        super().__init__(Provider.YANDEX)
         self.service = OAuth2Service(
             name='TEST',
             client_id=self.consumer_id,
@@ -48,7 +59,7 @@ class YandexSignIn(OAuthSignIn):
         )
 
     @traced()
-    def authorize(self):
+    def authorize(self) -> 'BaseResponse':
         return redirect(self.service.get_authorize_url(
             scope='login:email login:info',
             response_type='code',
@@ -56,8 +67,8 @@ class YandexSignIn(OAuthSignIn):
         )
 
     @traced()
-    def callback(self):
-        def decode_json(payload):
+    def callback(self) -> tuple:
+        def decode_json(payload: bytes):
             return json.loads(payload.decode('utf-8'))
 
         if 'code' not in request.args:
@@ -78,7 +89,7 @@ class YandexSignIn(OAuthSignIn):
 
 class VKSignIn(OAuthSignIn):
     def __init__(self):
-        super(VKSignIn, self).__init__('vk')
+        super().__init__(Provider.YK)
         self.service = OAuth2Service(
             name='TEST',
             client_id=self.consumer_id,
@@ -89,7 +100,7 @@ class VKSignIn(OAuthSignIn):
         )
 
     @traced()
-    def authorize(self):
+    def authorize(self) -> 'BaseResponse':
         return redirect(self.service.get_authorize_url(
             scope='email status',
             response_type='code',
@@ -97,8 +108,8 @@ class VKSignIn(OAuthSignIn):
         )
 
     @traced()
-    def callback(self):
-        def decode_json(payload):
+    def callback(self) -> tuple:
+        def decode_json(payload: bytes):
             return json.loads(payload.decode('utf-8'))
 
         if 'code' not in request.args:

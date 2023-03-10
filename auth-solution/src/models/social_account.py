@@ -13,9 +13,12 @@ class SocialAccount(db.Model):
                       {'schema': db_config.db})
 
     id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
-    user_id = db.Column(db.UUID(as_uuid=True),
-                        db.ForeignKey(f'{db_config.db}.user.id'),
-                        nullable=False)
+    user_id = db.Column(
+        db.UUID(as_uuid=True),
+        db.ForeignKey(f'{db_config.db}.user.id'),
+        nullable=False,
+        ondelete='CASCADE'
+    )
 
     social_id = db.Column(db.Text, nullable=False)
     social_name = db.Column(db.Text, nullable=False)
