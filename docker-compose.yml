@@ -161,7 +161,7 @@ services:
     expose:
       - "5000"
     volumes:
-      - ./auth_migrations:/opt/app/migrations
+      - ./auth-solution/migrations:/opt/app/migrations
 
   jaeger:
     container_name: jaeger
@@ -185,4 +185,4 @@ volumes:
   elasticsearch-data:
     driver: local
   jaeger_data:
-  auth_migrations:
+  migrations:

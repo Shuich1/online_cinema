@@ -72,22 +72,6 @@ def run_migrations_offline():
         context.run_migrations()
 
 
-def include_object(object, name, type_, reflected, compare_to):
-    if type_ == 'table' and name in ('auth_history_other',
-                                     'auth_history_web',
-                                     'auth_history_mobile',
-                                     'auth_history_tablet',
-                                     'user_a_f',
-                                     'user_g_l',
-                                     'user_m_r',
-                                     'user_s_z',
-                                     'user_num'
-                                     ):
-        return False
-
-    return True
-
-
 def run_migrations_online():
     """Run migrations in 'online' mode.
 
@@ -113,9 +97,7 @@ def run_migrations_online():
             connection=connection,
             target_metadata=get_metadata(),
             process_revision_directives=process_revision_directives,
-            **current_app.extensions['migrate'].configure_args,
-            version_table_schema='users_database',
-            include_object=include_object
+            **current_app.extensions['migrate'].configure_args
         )
 
         with context.begin_transaction():
