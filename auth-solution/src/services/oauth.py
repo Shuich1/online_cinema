@@ -4,7 +4,7 @@ from enum import Enum, unique, auto
 
 from flask import current_app, redirect, request, url_for
 from rauth import OAuth2Service
-from src.utils.trace_functions import traced
+from ..utils.trace_functions import traced
 
 if typing.TYPE_CHECKING:
     from werkzeug.wrappers import Response as BaseResponse

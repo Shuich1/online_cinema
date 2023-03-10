@@ -1,9 +1,9 @@
 from gevent import monkey
 
 monkey.patch_all()
-from src import create_app
-from src.core.config import settings
-from src.services.tracer import configure_tracer
+from . import create_app
+from .core.config import settings
+from .services.tracer import configure_tracer
 
 app = create_app()
 

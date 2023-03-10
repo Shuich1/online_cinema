@@ -1,24 +1,21 @@
 from datetime import timedelta
 from http import HTTPStatus
 
-from flask import Blueprint, jsonify, request, render_template_string
+from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required
 from flask_security.utils import hash_password, verify_password
-from src.models.auth_history import AuthHistory
-from src.models.social_account import SocialAccount
-from src.services.oauth import OAuthSignIn
-from src.services.redis import jwt_redis_blocklist, jwt_redis_refresh_tokens
 
-from src.utils.captcha import require_recaptcha
-from src.utils.extensions import (add_auth_history, create_tokens,
-                                  generate_random_string, send_user_info,
-                                  user_datastore)
-
-from src.utils.rate_limit import rate_limit
-
+from ...models.auth_history import AuthHistory
+from ...models.social_account import SocialAccount
+from ...services.oauth import OAuthSignIn
+from ...services.redis import jwt_redis_blocklist, jwt_redis_refresh_tokens
+from ...utils.captcha import require_recaptcha
+from ...utils.extensions import (add_auth_history, create_tokens,
+                                 generate_random_string,
+                                 user_datastore)
+from ...utils.rate_limit import rate_limit
 
 ACCESS_EXPIRES = timedelta(hours=1)
-
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -41,7 +38,10 @@ def signup():
     new_user = add_auth_history(new_user, request)
     user_datastore.commit()
 
-    access_token, refresh_token = create_tokens(identity=new_user.id)
+    access_token, refresh_token = create_tokens(
+        identity=new_user.id,
+        additional_claims={'roles': []}
+    )
 
     jwt_redis_refresh_tokens.set(str(new_user.id), refresh_token)
 
@@ -50,9 +50,6 @@ def signup():
     }
 
     response = jsonify({'refresh_token': refresh_token})
-
-    # Отправляем в movies api информацию по группам пользователя
-    send_user_info(new_user, headers)
 
     return response, HTTPStatus.CREATED, headers
 
@@ -73,9 +70,13 @@ def signin():
         return jsonify('Неверный пароль'), HTTPStatus.UNAUTHORIZED
 
     user = add_auth_history(user, request)
+    user_roles = [role.name for role in user.roles]
     user_datastore.commit()
 
-    access_token, refresh_token = create_tokens(identity=user.id)
+    access_token, refresh_token = create_tokens(
+        identity=user.id,
+        additional_claims={'roles': user_roles}
+    )
 
     jwt_redis_refresh_tokens.set(str(user.id), refresh_token)
 
@@ -84,9 +85,6 @@ def signin():
     }
 
     response = jsonify({'refresh_token': refresh_token})
-
-    # Отправляем в movies api информацию по группам пользователя
-    send_user_info(user, headers)
 
     return response, HTTPStatus.OK, headers
 
@@ -130,7 +128,11 @@ def oauth_callback(provider):
     else:
         user = user_datastore.find_user(id=social_account.user_id)
 
-    access_token, refresh_token = create_tokens(identity=user.id)
+    user_roles = [role.name for role in user.roles]
+    access_token, refresh_token = create_tokens(
+        identity=user.id,
+        additional_claims={'roles': user_roles}
+    )
 
     jwt_redis_refresh_tokens.set(str(user.id), refresh_token)
 
@@ -141,9 +143,6 @@ def oauth_callback(provider):
     response = jsonify({
         'refresh_token': refresh_token
     })
-
-    # Отправляем в movies api информацию по группам пользователя
-    send_user_info(user, headers)
 
     return response, HTTPStatus.OK, headers
 

@@ -1,7 +1,7 @@
 import uuid
 
-from src.services.database import db
-from src.core.config import db_config
+from ..services.database import db
+from ..core.config import db_config
 
 db.metadata.schema = db_config.db
 roles_users = db.Table(
