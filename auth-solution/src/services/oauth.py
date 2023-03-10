@@ -13,7 +13,7 @@ if typing.TYPE_CHECKING:
 @unique
 class Provider(Enum):
     YANDEX = auto()
-    YK = auto()
+    VK = auto()
 
 
 class OAuthSignIn:
