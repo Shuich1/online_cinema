@@ -24,6 +24,7 @@ class CaptchaSettings(BaseSettings):
 
 class Settings(BaseSettings):
     SECRET_KEY: str = Field(..., env='SECRET_KEY')
+    JWT_SECRET_KEY: str = Field(..., env='JWT_SECRET_KEY')
     FLASK_ADMIN_MAIL: str = Field(..., env='FLASK_ADMIN_MAIL')
     FLASK_ADMIN_PASS: str = Field(..., env='FLASK_ADMIN_PASS')
 
@@ -38,6 +39,8 @@ class Settings(BaseSettings):
 
     vk_id: str = Field(..., env='VK_ID')
     vk_secret: str = Field(..., env='VK_SECRET')
+
+    host_fast_api: str = Field(..., env='HOST_FAST_API')
 
     pg_db = Database()
     SQLALCHEMY_DATABASE_URI: PostgresDsn = f'postgresql+psycopg2://{pg_db.user}:{pg_db.password}@{pg_db.host}:{pg_db.port}/{pg_db.db}'

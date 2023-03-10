@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
-from src.utils.extensions import user_datastore
+from src.utils.extensions import send_user_info, user_datastore
 from src.utils.trace_functions import traced
 
 bp = Blueprint('roles', __name__, url_prefix='/roles')
@@ -76,6 +76,10 @@ def user(id):
 
         user_datastore.add_role_to_user(_user, _role)
         user_datastore.commit()
+
+        # Отправляем в movies api информацию по группам пользователя
+        send_user_info(user, request.headers)
+
         return jsonify(f'Role {role_name} successfully added to {_user}')
 
     if request.method == 'DELETE':
@@ -85,4 +89,8 @@ def user(id):
             return jsonify(f'Role {_role} is missing')
 
         user_datastore.remove_role_from_user(_user, _role)
+
+        # Отправляем в movies api информацию по группам пользователя
+        send_user_info(user, request.headers)
+
         return jsonify(f'Role {role_name} successfully removed from {_user}')

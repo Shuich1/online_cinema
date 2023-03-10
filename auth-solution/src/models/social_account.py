@@ -1,7 +1,9 @@
 import uuid
 
 from src.services.database import db
+
 from src.core.config import db_config
+
 from .user import User
 
 
