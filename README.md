@@ -1,4 +1,4 @@
-Online-cinema backend with Django, Nginx, ElasticSearch and PostgreSQL, FastAPI and Flask services
+Online-cinema backend with Django, Nginx, ElasticSearch, PostgreSQL, FastAPI and Flask services
 ================================================================================================
 This application includes an Admin Panel written in Django framework, an asynchronous backend containing business logic using FastAPI  
 and authentication API using Flask
