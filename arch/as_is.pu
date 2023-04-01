@@ -1,0 +1,87 @@
+@startuml as_is
+!theme materia
+skinparam componentStyle uml2
+
+title AS_IS
+
+agent Client
+agent SuperUser
+card NGINX
+card Jaeger
+database PostgresMovies
+database ElasticsearchMovies
+
+
+node AdminService {
+    frame DjangoAdmin {
+        component DjangoAPI
+        component DjangoAdminPanel
+    }
+
+    frame PostgresToElasticETL {
+        database CurrentState
+        file Extract
+        file Transform
+        file Load
+
+        CurrentState -> Extract: проверка текущего состояния
+        Load -> CurrentState: обновление состояния
+        
+        Extract -> Transform
+        Transform -> Load
+    }
+}
+
+
+node AsyncService {
+    database AsyncRedisCache
+    frame AsyncAPI {
+        component Async_Services
+        file AsyncTracer
+    }
+
+    Async_Services <-> AsyncRedisCache: кэширование
+    AsyncTracer -> Jaeger: отправление трейсов Jaeger
+}
+
+
+node AuthService {
+    database Users
+    database AuthRedisCache
+    frame AuthAPI {
+        component Auth_Services
+        file AuthTracer
+        cloud OAuth2 {
+            component Yandex
+            component VK
+        }
+    }
+    
+    Auth_Services <--> Users: работа с данными пользователей
+    Auth_Services <--> AuthTracer
+    Auth_Services <--> OAuth2: авторизация через соц.сети
+    Auth_Services <--> AuthRedisCache: хранение jwt токенов
+    
+    AuthTracer -> Jaeger: отправление трейсов Jaeger
+}
+
+' NGINX connections
+NGINX <--> Client: запросы [пользователь]
+NGINX <--> SuperUser: запросы [модераторы, админ]
+NGINX <--> DjangoAdminPanel: доступ к админ панели
+NGINX <.[#Purple].> DjangoAPI: legacy movies API
+NGINX <--> AsyncAPI: API полнотекстового поиска
+NGINX <--> AuthAPI: API авторизации
+NGINX <..> Jaeger: доступ к Jaeger
+
+'Postgres connections
+PostgresMovies -> Extract: выгрузка данных из Postgres
+PostgresMovies <.[#Purple].> DjangoAPI: legacy movies api
+PostgresMovies <--> DjangoAdminPanel
+
+' Elastic connections
+Load -> ElasticsearchMovies: загрузка данных в ElasticSearch
+ElasticsearchMovies <--> Async_Services: взятие данных из elastic
+
+' SuperUser connections
+SuperUser <.> Jaeger: запросы [аналитики, админ]
