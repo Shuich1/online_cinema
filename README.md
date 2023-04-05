@@ -20,6 +20,5 @@ and authentication API using Flask
 - The FastAPI documentation will be available at http://127.0.0.1/api/openapi Check the documentation for more information about the API
 
 ## Developers
-- Гребенников Илья (salliko)
-- Казмин Вадим (vimjk)
+- Казьмин Вадим (vimjk)
 - Журавков Владислав (Shuich1)

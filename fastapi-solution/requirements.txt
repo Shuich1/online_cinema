@@ -12,3 +12,4 @@ opentelemetry-instrumentation-fastapi==0.37b0
 opentelemetry-exporter-jaeger==1.12.0
 jsonschema==4.17.3
 pyjwt==2.6.0
+aiokafka==0.8.0

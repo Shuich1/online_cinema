@@ -208,7 +208,8 @@ services:
     restart: always
 
   clickhouse-node1:
-    image: yandex/clickhouse-server:20.4
+    image: clickhouse/clickhouse-server:22.12-alpine
+    platform: linux/arm64
     container_name: clickhouse-node1
     hostname: clickhouse-node1
     ports:
@@ -220,7 +221,8 @@ services:
       - zookeeper
 
   clickhouse-node2:
-    image: yandex/clickhouse-server:20.4
+    image: clickhouse/clickhouse-server:22.12-alpine
+    platform: linux/arm64
     container_name: clickhouse-node2
     hostname: clickhouse-node2
     volumes:
@@ -229,7 +231,8 @@ services:
       - zookeeper
 
   clickhouse-node3:
-    image: yandex/clickhouse-server:20.4
+    image: clickhouse/clickhouse-server:22.12-alpine
+    platform: linux/arm64
     container_name: clickhouse-node3
     hostname: clickhouse-node3
     volumes:
@@ -238,7 +241,8 @@ services:
       - zookeeper
 
   clickhouse-node4:
-    image: yandex/clickhouse-server:20.4
+    image: clickhouse/clickhouse-server:22.12-alpine
+    platform: linux/arm64
     container_name: clickhouse-node4
     hostname: clickhouse-node4
     volumes:

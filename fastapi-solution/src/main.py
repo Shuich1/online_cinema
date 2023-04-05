@@ -1,4 +1,7 @@
+import json
+
 import aioredis
+from aiokafka import AIOKafkaProducer
 from fastapi import FastAPI, Request
 from fastapi.responses import ORJSONResponse
 from opentelemetry import trace
@@ -6,8 +9,9 @@ from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 from .api.v1 import films, genre, person
 from .core.config import settings
-from .db import cache, data_storage
+from .db import cache, data_storage, streaming_storage
 from .services.tracer import configure_tracer
+
 
 app = FastAPI(
     title="Read-only API для онлайн-кинотеатра",
@@ -36,6 +40,7 @@ if settings.tracer.TRACER_ENABLED:
 
         return await call_next(request)        
 
+
 @app.on_event('startup')
 async def startup():
     cache.cache = cache.RedisCache(
@@ -51,11 +56,19 @@ async def startup():
         elastic=[f'{settings.elastic_host}:{settings.elastic_port}']
     )
 
+    streaming_storage.streaming_storage = streaming_storage.KafkaStorage(
+            producer=AIOKafkaProducer(
+                    bootstrap_servers=f'{settings.kafka_host}:{settings.kafka_port}',
+                    value_serializer=lambda m: json.dumps(m).encode(),
+                    compression_type="gzip")
+    )
+
 
 @app.on_event('shutdown')
 async def shutdown():
     await cache.cache.close()
     await data_storage.data_storage.close()
+    await streaming_storage.streaming_storage.close()
 
 
 app.include_router(films.router, prefix='/api/v1/films', tags=['films'])

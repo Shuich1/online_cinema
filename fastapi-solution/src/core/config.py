@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     elastic_host: str = Field(..., env='ELASTIC_HOST')
     elastic_port: int = Field(9200, env='ELASTIC_PORT')
 
+    kafka_host: str = Field(..., env='KAFKA_HOST')
+    kafka_port: int = Field(9092, env='KAFKA_PORT')
+
     fastapi_host: str = Field('0.0.0.0', env='FASTAPI_HOST')
     fastapi_port: int = Field(..., env='FASTAPI_PORT')
 
